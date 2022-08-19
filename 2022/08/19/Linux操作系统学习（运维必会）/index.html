@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.2.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://fastly.jsdelivr.net'>
+  <link rel="preconnect" href="https://fastly.jsdelivr.net" crossorigin>
+  <link rel='dns-prefetch' href='//unpkg.com'>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>Linux操作系统学习（运维必会） - 甜点cc的博客</title>
+
+  
+    <meta name="description" content="Linux">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux操作系统学习（运维必会）">
+<meta property="og:url" content="https://all-smile.github.io/blog/2022/08/19/Linux%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AD%A6%E4%B9%A0%EF%BC%88%E8%BF%90%E7%BB%B4%E5%BF%85%E4%BC%9A%EF%BC%89/index.html">
+<meta property="og:site_name" content="甜点cc的博客">
+<meta property="og:description" content="Linux">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://files.mdnice.com/user/34064/aff0bdac-3d98-4b92-bb66-31b64553af07.png">
+<meta property="og:image" content="https://files.mdnice.com/user/34064/add9ba6d-077c-418b-8cf1-07bd8718b247.png">
+<meta property="og:image" content="https://files.mdnice.com/user/34064/a522099f-11fd-419d-9e45-b934fca5f2fd.png">
+<meta property="og:image" content="https://files.mdnice.com/user/34064/61f7e942-9401-4aa7-a001-81b97b19a115.png">
+<meta property="og:image" content="https://files.mdnice.com/user/34064/ceab08f4-9ec2-4cf8-b3c7-55f8b8e59491.png">
+<meta property="og:image" content="https://files.mdnice.com/user/34064/38149daa-3e4b-460d-b8df-75b08375bd23.png">
+<meta property="og:image" content="https://files.mdnice.com/user/34064/915527df-3b7d-45df-95ab-440ed0444969.png">
+<meta property="og:image" content="https://files.mdnice.com/user/34064/b211a66e-8f66-47f7-9281-1bc7f6356a79.png">
+<meta property="article:published_time" content="2022-08-19T05:24:53.000Z">
+<meta property="article:modified_time" content="2022-08-19T05:35:42.373Z">
+<meta property="article:author" content="Xiao Juntao">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://files.mdnice.com/user/34064/aff0bdac-3d98-4b92-bb66-31b64553af07.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/blog/css/main.css">
+
+  
+
+  
+
+  
+
+  
+
+
+  
+</head>
+
+<body>
+  
+
+
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/blog/about/"><div class="bg" style="opacity:0;background-image:url(https://fastly.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="https://raw.githubusercontent.com/all-smile/nav/master/static/images/cattle.jpg" onerror="javascript:this.classList.add('error');this.src='https://fastly.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/blog/"><div class="main">甜点cc的博客</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/blog/">文章</a><a class="nav-item" href="/blog/wiki/">项目</a><a class="nav-item" href="/blog/notes/">笔记</a><a class="nav-item" href="/blog/more/">更多</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#4-1%E3%80%81%E6%9B%B4%E6%94%B9%E6%96%87%E4%BB%B6%E6%9D%83%E9%99%90"><span class="toc-text">4.1、更改文件权限</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-1%E3%80%81%E6%B7%BB%E5%8A%A0%E7%94%A8%E6%88%B7"><span class="toc-text">6.1、添加用户</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-2%E3%80%81%E5%88%A0%E9%99%A4%E7%94%A8%E6%88%B7"><span class="toc-text">6.2、删除用户</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-3%E3%80%81%E4%BF%AE%E6%94%B9%E7%94%A8%E6%88%B7"><span class="toc-text">6.3、修改用户</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-4%E3%80%81%E5%88%87%E6%8D%A2%E7%94%A8%E6%88%B7"><span class="toc-text">6.4、切换用户</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-5%E3%80%81%E4%BF%AE%E6%94%B9%E9%98%BF%E9%87%8C%E4%BA%91%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%B8%BB%E6%9C%BA%E5%90%8D"><span class="toc-text">6.5、修改阿里云服务器主机名</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-6%E3%80%81%E5%AF%86%E7%A0%81%E8%AE%BE%E7%BD%AE"><span class="toc-text">6.6、密码设置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-7%E3%80%81%E9%94%81%E5%AE%9A%E8%A7%A3%E9%94%81%E7%94%A8%E6%88%B7"><span class="toc-text">6.7、锁定解锁用户</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-1%E3%80%81%E5%88%9B%E5%BB%BA%E7%94%A8%E6%88%B7%E7%BB%84"><span class="toc-text">7.1、创建用户组</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-2%E3%80%81%E5%88%A0%E9%99%A4%E7%94%A8%E6%88%B7%E7%BB%84"><span class="toc-text">7.2、删除用户组</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-3%E3%80%81%E4%BF%AE%E6%94%B9%E7%94%A8%E6%88%B7%E7%BB%84"><span class="toc-text">7.3、修改用户组</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-4%E3%80%81%E5%88%87%E6%8D%A2%E7%94%A8%E6%88%B7%E7%BB%84"><span class="toc-text">7.4、切换用户组</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-5%E3%80%81%E7%94%A8%E6%88%B7%E5%AF%86%E7%A0%81"><span class="toc-text">7.5、用户密码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-1%E3%80%81%E9%87%8A%E6%94%BE%E7%A9%BA%E9%97%B4"><span class="toc-text">8.1、释放空间</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#x2F-var-x2F-log-x2F-journal-x2F-%E5%9E%83%E5%9C%BE%E6%97%A5%E5%BF%97%E6%B8%85%E7%90%86"><span class="toc-text">&#x2F;var&#x2F;log&#x2F;journal&#x2F; 垃圾日志清理</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-1%E3%80%81ps-aux"><span class="toc-text">9.1、ps -aux</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-2%E3%80%81ps-ef-%E5%8F%AF%E4%BB%A5%E6%9F%A5%E7%9C%8B%E5%88%B0%E7%88%B6%E8%BF%9B%E7%A8%8B%E7%9A%84%E4%BF%A1%E6%81%AF"><span class="toc-text">9.2、ps -ef 可以查看到父进程的信息</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-3%E3%80%81%E8%BF%9B%E7%A8%8B%E6%A0%91%EF%BC%88%E7%9B%AE%E5%BD%95%E6%A0%91%EF%BC%89"><span class="toc-text">9.3、进程树（目录树）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-4%E3%80%81top%E5%91%BD%E4%BB%A4"><span class="toc-text">9.4、top命令</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-5%E3%80%81%E7%BB%93%E6%9D%9F%E8%BF%9B%E7%A8%8B"><span class="toc-text">9.5、结束进程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-6%E3%80%81nohup-%E5%90%8E%E5%8F%B0%E8%BF%90%E8%A1%8C%E8%BF%9B%E7%A8%8B"><span class="toc-text">9.6、nohup 后台运行进程</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/blog/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/blog/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/blog/categories/%E8%BF%90%E7%BB%B4/">运维</a></div><div id="post-meta">发布于&nbsp;<time datetime="2022-08-19T05:24:53.000Z">2022-08-19</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>Linux操作系统学习（运维必会）</span></h1>
+<blockquote>
+<p>Linux一切皆文件，最高权限的账户root。</p>
+</blockquote>
+<h1 id="1、开机登录"><a href="#1、开机登录" class="headerlink" title="1、开机登录"></a>1、开机登录</h1><p>开机会启动很多进程，在Windows上叫“服务”（service），在Linux上叫做“守护进程”（daemon）</p>
+<p>登录方式：</p>
+<ul>
+<li><p>命令行登录</p>
+</li>
+<li><p>ssh登录</p>
+</li>
+<li><p>图形界面登录</p>
+</li>
+</ul>
+<h1 id="2、关机"><a href="#2、关机" class="headerlink" title="2、关机"></a>2、关机</h1><p>不管是重启系统还是关闭系统，首先要运行 <strong>sync</strong> 命令，把内存中的数据同步到硬盘中。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">sync                # 将数据从内存同步到硬盘中</span><br><span class="line"></span><br><span class="line">shutdown</span><br><span class="line">shutdown -h 10      # 10分钟后关机</span><br><span class="line">shutdown -h +10     # 10分钟后关机</span><br><span class="line">shutdown -h now     # 立马关机</span><br><span class="line">shutdown -h 20:25   # 系统将在今天20:25关机</span><br><span class="line"></span><br><span class="line">shutdown -r now     # 立即重启</span><br><span class="line">shutdown -r +10     # 10分钟后重启</span><br><span class="line">reboot              # 重启，相当于 shutdown -r now</span><br><span class="line">halt                # 关机，相当于 shutdown -h now</span><br></pre></td></tr></table></figure>
+
+<h1 id="3、根目录结构"><a href="#3、根目录结构" class="headerlink" title="3、根目录结构"></a>3、根目录结构</h1><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">/bin        # Binary的缩写，存在最经常使用的命令</span><br><span class="line">/boot       # 存放启动Linux时要使用的一些核心文件，包括链接文件和镜像文件</span><br><span class="line">/dev        # Device的缩写，存放Linux的外部设备</span><br><span class="line">/etc        # 存放系统管理所需的配置文件和子目录</span><br><span class="line">/home       # 用户的主目录，在Linux中，每个用户都有一个自己的目录，一般该目录以用户的账号命名</span><br><span class="line">/lib        # 存放系统最基本的动态链接共享库，其作用类似于Windows里的DLL文件</span><br><span class="line">/lost+found # 这个目录一般是空的，当用户非正常关机时就会在这里存放一些文件</span><br><span class="line">/media      # Linux系统识别出来的设备，例如U盘，光驱，Linux把识别到的设备挂载到这个目录下</span><br><span class="line">/mnt        # 让用户临时挂载别的文件系统</span><br><span class="line">/opt        # 给主机额外安装软件所存放的目录，比如安装Oracle数据库可以放到这个目录下面</span><br><span class="line">/proc       # 虚拟目录，系统内存的映射，可以通过访问这个目录来获取系统信息</span><br><span class="line">/root       # 该目录为系统管理员，也称作超级权限的用户主目录</span><br><span class="line">/sbin       # s 就是 Super User的意思，这里存放系统管理员使用的系统管理程序</span><br><span class="line">/srv        # 存放一些服务启动之后需要提取的数据</span><br><span class="line">/sys        # Linux2.6内核一个很大的变化，该目录下安装了2.6内核中新出现的一个文件系统sysfs</span><br><span class="line">/tmp        # 存放临时文件的目录</span><br><span class="line">/usr        # 用户的很多应用程序和文件都存放在这个目录，类似于Windows下的program files</span><br><span class="line">/usr/bin    # 系统用户使用的应用程序</span><br><span class="line"></span><br><span class="line">/www        # 存放服务器网站相关的资源，环境、网站的项目-----------</span><br><span class="line">						#	LNMP: Linux、Nginx、MySQL、Php</span><br><span class="line">            # LTMP: Linux、tomcat、MySQL、Php</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://files.mdnice.com/user/34064/aff0bdac-3d98-4b92-bb66-31b64553af07.png"></p>
+<h1 id="4、文件属性"><a href="#4、文件属性" class="headerlink" title="4、文件属性"></a>4、文件属性</h1><ul>
+<li><p>r：read</p>
+</li>
+<li><p>w： write</p>
+</li>
+<li><p>x ：可执行execute</p>
+</li>
+<li><p>-：没有权限</p>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>文件类型<br/>0</th>
+<th>属主权限 owner<br/>1 2 3</th>
+<th>属组权限 group<br/>4 5 6</th>
+<th>其它用户权限 others<br/>7    8    9</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>d</td>
+<td>r     w    x</td>
+<td>r     -    x</td>
+<td>r     -    x</td>
+</tr>
+<tr>
+<td>目录文件</td>
+<td>读  写   执行</td>
+<td>读  写  执行</td>
+<td>读  写   执行</td>
+</tr>
+</tbody></table>
+<ul>
+<li><p>1、4、7：读</p>
+</li>
+<li><p>2、5、8：写</p>
+</li>
+<li><p>3、6、9：可执行</p>
+</li>
+</ul>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://files.mdnice.com/user/34064/add9ba6d-077c-418b-8cf1-07bd8718b247.png"></p>
+<h2 id="4-1、更改文件权限"><a href="#4-1、更改文件权限" class="headerlink" title="4.1、更改文件权限"></a>4.1、更改文件权限</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">chmod</span> 更改9个文件属性</span><br><span class="line"></span><br><span class="line">[-rwxrwxrwx] 这九个权限属性，三个一组，</span><br><span class="line">用数字代表权限</span><br><span class="line">r: 4   w: 2   x: 1   4+2+1=7</span><br><span class="line"><span class="built_in">chmod</span> 777  可读可写可执行     <span class="built_in">chmod</span> rwxrwxrwx</span><br><span class="line"><span class="built_in">chmod</span> 666  可读可写不可执行   <span class="built_in">chmod</span> rw-rw-rw-</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>查看文件方法<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">cat   # 显示文件内容不够</span><br><span class="line">tac   # 倒序显示文件内容</span><br><span class="line">nl    # 显示文件内容并展示行号</span><br><span class="line">more  # 一页一页显示文件内容，(空格代表翻页，enter代表向下看一行，:f 查看当前行号)</span><br><span class="line">less  # 和more类似，向上翻页</span><br><span class="line">head  # -n参数 控制显示几行</span><br><span class="line">tail  # -n参数，倒着查看最后n行信息</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h1 id="5、硬链接、软链接"><a href="#5、硬链接、软链接" class="headerlink" title="5、硬链接、软链接"></a>5、硬链接、软链接</h1><p>软链接跟Windows上的快捷方式类似，删除源文件，快捷方式也访问不了了。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">硬链接</span></span><br><span class="line">ln 01 02  # 给01文件创建一个硬链接02，01和02指向同一个文件，允许一个文件有多个路径，用户通过这种机制建立硬链接到一些重要文件上，以防误删！</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">软链接</span></span><br><span class="line">ln -s 01 03</span><br></pre></td></tr></table></figure>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://files.mdnice.com/user/34064/a522099f-11fd-419d-9e45-b934fca5f2fd.png"></p>
+<h1 id="6、账号管理"><a href="#6、账号管理" class="headerlink" title="6、账号管理"></a>6、账号管理</h1><p>属主、属组</p>
+<h2 id="6-1、添加用户"><a href="#6-1、添加用户" class="headerlink" title="6.1、添加用户"></a>6.1、添加用户</h2><p>一切皆文件，相当于在 &#x2F;etc&#x2F;passwd 文件中写入用户信息</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">useradd -参数 用户名</span><br><span class="line">-m 使用者主目录不存在，则自动在/home目录下创建用户名目录</span><br><span class="line"></span><br><span class="line">-G 给用户分配属组</span><br><span class="line"></span><br><span class="line">useradd -m xiaotest</span><br><span class="line"></span><br><span class="line">[root@--- home]# cat /etc/passwd</span><br><span class="line">root:x:0:0:root:/root:/bin/bash</span><br><span class="line">bin:x:1:1:bin:/bin:/sbin/nologin</span><br><span class="line">daemon:x:2:2:daemon:/sbin:/sbin/nologin</span><br><span class="line">adm:x:3:4:adm:/var/adm:/sbin/nologin</span><br><span class="line">lp:x:4:7:lp:/var/spool/lpd:/sbin/nologin</span><br><span class="line">sync:x:5:0:sync:/sbin:/bin/sync</span><br><span class="line">shutdown:x:6:0:shutdown:/sbin:/sbin/shutdown</span><br><span class="line">halt:x:7:0:halt:/sbin:/sbin/halt</span><br><span class="line">mail:x:8:12:mail:/var/spool/mail:/sbin/nologin</span><br><span class="line">operator:x:11:0:operator:/root:/sbin/nologin</span><br><span class="line">games:x:12:100:games:/usr/games:/sbin/nologin</span><br><span class="line">ftp:x:14:50:FTP User:/var/ftp:/sbin/nologin</span><br><span class="line">nobody:x:99:99:Nobody:/:/sbin/nologin</span><br><span class="line">systemd-network:x:192:192:systemd Network Management:/:/sbin/nologin</span><br><span class="line">dbus:x:81:81:System message bus:/:/sbin/nologin</span><br><span class="line">polkitd:x:999:998:User for polkitd:/:/sbin/nologin</span><br><span class="line">sshd:x:74:74:Privilege-separated SSH:/var/empty/sshd:/sbin/nologin</span><br><span class="line">postfix:x:89:89::/var/spool/postfix:/sbin/nologin</span><br><span class="line">chrony:x:998:996::/var/lib/chrony:/sbin/nologin</span><br><span class="line">ntp:x:38:38::/etc/ntp:/sbin/nologin</span><br><span class="line">tcpdump:x:72:72::/:/sbin/nologin</span><br><span class="line">nscd:x:28:28:NSCD Daemon:/:/sbin/nologin</span><br><span class="line">mysql:x:27:27:MySQL Server:/var/lib/mysql:/bin/bash</span><br><span class="line">redis:x:997:995:Redis Database Server:/var/lib/redis:/sbin/nologin</span><br><span class="line">jenkins:x:996:992:Jenkins Automation Server:/var/lib/jenkins:/bin/false</span><br><span class="line">tss:x:59:59:Account used by the trousers package to sandbox the tcsd daemon:/dev/null:/sbin/nologin</span><br><span class="line">xiao:x:1000:1000::/home/xiao:/bin/bash</span><br><span class="line">xiaotest:x:1001:1001::/home/xiaotest:/bin/bash      # /home/xiaotest 用户主目录</span><br><span class="line">[root@--- home]#</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="6-2、删除用户"><a href="#6-2、删除用户" class="headerlink" title="6.2、删除用户"></a>6.2、删除用户</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">userdel -r xiaotest  # 删除用户的时候 一起删除用户的目录</span><br></pre></td></tr></table></figure>
+
+<h2 id="6-3、修改用户"><a href="#6-3、修改用户" class="headerlink" title="6.3、修改用户"></a>6.3、修改用户</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">usermod</span><br><span class="line">usermod -d /home/test01 xiaotest # 更改用户xiaotest的主目录</span><br></pre></td></tr></table></figure>
+
+<h2 id="6-4、切换用户"><a href="#6-4、切换用户" class="headerlink" title="6.4、切换用户"></a>6.4、切换用户</h2><p><code>su 用户名</code></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@--- home]# su xiaotest   # root用户切换到xiaotest用户</span><br><span class="line">[xiaotest@--- home]$ exit      # 退出当前用户，回到root用户</span><br><span class="line">exit</span><br><span class="line">[root@--- home]#</span><br></pre></td></tr></table></figure>
+
+<h2 id="6-5、修改阿里云服务器主机名"><a href="#6-5、修改阿里云服务器主机名" class="headerlink" title="6.5、修改阿里云服务器主机名"></a>6.5、修改阿里云服务器主机名</h2><p>随机字符串 - 自定义主机名</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">hostname</span><br><span class="line">hostname xiao  # 修改主机名为xiao， 重连即可生效</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">重启主句，主机名就会变为随机字符串</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="6-6、密码设置"><a href="#6-6、密码设置" class="headerlink" title="6.6、密码设置"></a>6.6、密码设置</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">root 用户配置普通用户密码</span><br><span class="line">passwd xiaotest  # 给xiaotest用户设置登录密码</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">重建连接，使用普通用户登录即可</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="6-7、锁定解锁用户"><a href="#6-7、锁定解锁用户" class="headerlink" title="6.7、锁定解锁用户"></a>6.7、锁定解锁用户</h2><p>只有root用户才可以操作</p>
+<p>使用场景: 某员工辞职，或者合伙人设置</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">passwd -l xiaotest  # -l  lock 锁定用户，不能继续登录</span><br><span class="line">passwd -d xiaotest  # -d  删除密码，给用户输入空口令，没有密码也不能登录</span><br><span class="line"></span><br><span class="line">-u：解锁用户</span><br><span class="line">passwd -u xiaotest</span><br></pre></td></tr></table></figure>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://files.mdnice.com/user/34064/61f7e942-9401-4aa7-a001-81b97b19a115.png"></p>
+<h1 id="7、用户组管理"><a href="#7、用户组管理" class="headerlink" title="7、用户组管理"></a>7、用户组管理</h1><p><code>/etc/group</code> 文件</p>
+<p>每个用户都有一个用户组，系统可以对一个用户组下面的所有用户进行集中管理（开发、测试、运维、root）</p>
+<h2 id="7-1、创建用户组"><a href="#7-1、创建用户组" class="headerlink" title="7.1、创建用户组"></a>7.1、创建用户组</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line">groupadd test01</span><br><span class="line"></span><br><span class="line">[root@xiao ~]# cat /etc/group</span><br><span class="line">root:x:0:</span><br><span class="line">bin:x:1:</span><br><span class="line">daemon:x:2:</span><br><span class="line">sys:x:3:</span><br><span class="line">adm:x:4:</span><br><span class="line">tty:x:5:</span><br><span class="line">disk:x:6:</span><br><span class="line">lp:x:7:</span><br><span class="line">mem:x:8:</span><br><span class="line">kmem:x:9:</span><br><span class="line">wheel:x:10:</span><br><span class="line">cdrom:x:11:</span><br><span class="line">mail:x:12:postfix</span><br><span class="line">man:x:15:</span><br><span class="line">dialout:x:18:</span><br><span class="line">floppy:x:19:</span><br><span class="line">games:x:20:</span><br><span class="line">tape:x:33:</span><br><span class="line">video:x:39:</span><br><span class="line">ftp:x:50:</span><br><span class="line">lock:x:54:</span><br><span class="line">audio:x:63:</span><br><span class="line">nobody:x:99:</span><br><span class="line">users:x:100:</span><br><span class="line">utmp:x:22:</span><br><span class="line">utempter:x:35:</span><br><span class="line">input:x:999:</span><br><span class="line">systemd-journal:x:190:</span><br><span class="line">systemd-network:x:192:</span><br><span class="line">dbus:x:81:</span><br><span class="line">polkitd:x:998:</span><br><span class="line">ssh_keys:x:997:</span><br><span class="line">sshd:x:74:</span><br><span class="line">postdrop:x:90:</span><br><span class="line">postfix:x:89:</span><br><span class="line">chrony:x:996:</span><br><span class="line">ntp:x:38:</span><br><span class="line">tcpdump:x:72:</span><br><span class="line">nscd:x:28:</span><br><span class="line">mysql:x:27:</span><br><span class="line">redis:x:995:</span><br><span class="line">cgred:x:994:</span><br><span class="line">docker:x:993:</span><br><span class="line">jenkins:x:992:</span><br><span class="line">tss:x:59:</span><br><span class="line">xiao:x:1000:</span><br><span class="line">xiaotest:x:1001:</span><br><span class="line">allblue:x:1002:</span><br><span class="line">test01:x:1003:</span><br><span class="line">test02:x:520:      # 通过使用 -g 参数制定id</span><br><span class="line">dev:x:1003:dev01   # dev组 该组下有dev01用户 新建用户是通过-G参数指定</span><br><span class="line">dev01:x:1004:</span><br><span class="line">[root@xiao ~]#</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">通过使用 -g 参数指定id</span><br><span class="line">groupadd -g 520 test02</span><br></pre></td></tr></table></figure>
+
+<h2 id="7-2、删除用户组"><a href="#7-2、删除用户组" class="headerlink" title="7.2、删除用户组"></a>7.2、删除用户组</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">groupdel test01</span><br></pre></td></tr></table></figure>
+
+<h2 id="7-3、修改用户组"><a href="#7-3、修改用户组" class="headerlink" title="7.3、修改用户组"></a>7.3、修改用户组</h2><p>修改权限信息和名字</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">-g 修改id</span><br><span class="line">-n 修改名字</span><br><span class="line">groupmod -g 123 test01</span><br><span class="line">groupmod -n newtest01 test01</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="7-4、切换用户组"><a href="#7-4、切换用户组" class="headerlink" title="7.4、切换用户组"></a>7.4、切换用户组</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">登录当前用户 xiaotest</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">newgrp root</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="7-5、用户密码"><a href="#7-5、用户密码" class="headerlink" title="7.5、用户密码"></a>7.5、用户密码</h2><p><code>/etc/shadow</code>文件下</p>
+<p>密码已经加密</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">allblue:$6$hSPupMOZ$WMbjL2pn8bhSkiD7NicH6sDAJYfEKnU3ofylMuOrSMuqqt/i/wirkCwbinA0VjhXBTExmSSPdFb6LPpLRN3hS.:18917:0:99999:7:::</span><br></pre></td></tr></table></figure>
+
+<h1 id="8、磁盘管理"><a href="#8、磁盘管理" class="headerlink" title="8、磁盘管理"></a>8、磁盘管理</h1><p><code>du - disk usage</code></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">df  查看系统整体磁盘的使用量</span><br><span class="line">df -h 以兆(m)为单位显示</span><br><span class="line"></span><br><span class="line">du  查看当前磁盘的空间使用量</span><br><span class="line">du -a # 查看全部文件，包括隐藏文件和子文件</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看根目录下每个目录多占用的容量</span></span><br><span class="line">du -sm /*</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">寻找当前目录，哪个文件夹占用空间最大</span></span><br><span class="line">du -h --max-depth=1</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://files.mdnice.com/user/34064/ceab08f4-9ec2-4cf8-b3c7-55f8b8e59491.png"></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://files.mdnice.com/user/34064/38149daa-3e4b-460d-b8df-75b08375bd23.png"></p>
+<h2 id="8-1、释放空间"><a href="#8-1、释放空间" class="headerlink" title="8.1、释放空间"></a>8.1、释放空间</h2><p>使用 <code>du -h --max-depth=1</code>  命令查找大文件</p>
+<h3 id="x2F-var-x2F-log-x2F-journal-x2F-垃圾日志清理"><a href="#x2F-var-x2F-log-x2F-journal-x2F-垃圾日志清理" class="headerlink" title="&#x2F;var&#x2F;log&#x2F;journal&#x2F; 垃圾日志清理"></a><strong>&#x2F;var&#x2F;log&#x2F;journal&#x2F; 垃圾日志清理</strong></h3><figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">// <span class="number">1</span>. 只保留近一周的日志</span><br><span class="line">journalctl <span class="literal">--vacuum-time</span>=<span class="number">1</span>w</span><br><span class="line"></span><br><span class="line">// <span class="number">2</span>. 只保留<span class="number">500</span>MB的日志</span><br><span class="line">journalctl <span class="literal">--vacuum-size</span>=<span class="number">500</span>M</span><br></pre></td></tr></table></figure>
+
+<h1 id="9、进程管理"><a href="#9、进程管理" class="headerlink" title="9、进程管理"></a>9、进程管理</h1><ol>
+<li><p>Linux中每一个程序都有一个自己的进程，每一个进程都有一个id</p>
+</li>
+<li><p>每一个进程都会有一个父进程</p>
+</li>
+<li><p>进程有两种存在方式：前台、后台</p>
+</li>
+<li><p>一般服务都是后台运行的，程序都是是前台运行的</p>
+</li>
+</ol>
+<h2 id="9-1、ps-aux"><a href="#9-1、ps-aux" class="headerlink" title="9.1、ps -aux"></a>9.1、ps -aux</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">ps   # 查看当前系统中正在执行的各种进程的信息</span><br><span class="line"></span><br><span class="line">-a # 显示当前终端运行的所有进程信息</span><br><span class="line">-u # 以用户的信息显示进程</span><br><span class="line">-x # 显示后台运行进程的参数 启动进程时所携带的参数</span><br><span class="line"></span><br><span class="line">| # 管道符</span><br><span class="line">A | B  # A、B命令，A命令的结果作为输出传递给B命令</span><br><span class="line">grep # 查看文件中复合条件的字符串</span><br><span class="line"></span><br><span class="line">ps -aux|grep nginx   # 查看nginx的进程信息</span><br><span class="line">[root@xiao composetest]# ps -aux|grep nginx</span><br><span class="line">root     15986  0.0  0.0 112712   960 pts/0    S+   19:29   0:00 grep --color=auto nginx</span><br><span class="line">root     19664  0.0  0.0  45940  1168 ?        Ss   Oct06   0:00 nginx: master process /usr/local/nginx/sbin/nginx -c /usr/local/nginx/conf/nginx.conf</span><br><span class="line">nobody   19668  0.0  0.1  46928  3248 ?        S    Oct06   1:52 nginx: worker process</span><br><span class="line">[root@xiao composetest]#</span><br><span class="line"></span><br><span class="line">ps -aux|grep mongo   # 查看mongo的进程信息</span><br><span class="line">root     16035  0.0  0.0 112712   956 pts/0    S+   19:29   0:00 grep --color=auto mongo</span><br><span class="line">root     19440  0.4  5.3 1635344 101348 ?      SLl  Sep04 308:50 mongod --config /usr/local/mongodb/etc/mongodb.conf</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>UID    &#x2F;&#x2F;用户ID、但输出的是用户名</p>
+</li>
+<li><p>PID    &#x2F;&#x2F;进程的ID</p>
+</li>
+<li><p>PPID    &#x2F;&#x2F;父进程ID</p>
+</li>
+<li><p>C      &#x2F;&#x2F;进程占用CPU的百分比</p>
+</li>
+<li><p>STIME  &#x2F;&#x2F;进程启动到现在的时间</p>
+</li>
+<li><p>TTY    &#x2F;&#x2F;该进程在那个终端上运行，若与终端无关，则显示? 若为pts&#x2F;0等，则表示由网络连接主机进程。</p>
+</li>
+<li><p>CMD    &#x2F;&#x2F;命令的名称和参数</p>
+</li>
+</ul>
+<h2 id="9-2、ps-ef-可以查看到父进程的信息"><a href="#9-2、ps-ef-可以查看到父进程的信息" class="headerlink" title="9.2、ps -ef 可以查看到父进程的信息"></a>9.2、ps -ef 可以查看到父进程的信息</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ps -ef|grep mysql</span><br></pre></td></tr></table></figure>
+
+<h2 id="9-3、进程树（目录树）"><a href="#9-3、进程树（目录树）" class="headerlink" title="9.3、进程树（目录树）"></a>9.3、进程树（目录树）</h2><p>看父进程可以通过目录树来查看</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">pstree</span><br><span class="line">-p # 显示父id (PPID)</span><br><span class="line">-u # 显示用户组</span><br><span class="line"></span><br><span class="line">pstree -pu</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://files.mdnice.com/user/34064/915527df-3b7d-45df-95ab-440ed0444969.png"></p>
+<h2 id="9-4、top命令"><a href="#9-4、top命令" class="headerlink" title="9.4、top命令"></a>9.4、top命令</h2><p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://files.mdnice.com/user/34064/b211a66e-8f66-47f7-9281-1bc7f6356a79.png"></p>
+<h2 id="9-5、结束进程"><a href="#9-5、结束进程" class="headerlink" title="9.5、结束进程"></a>9.5、结束进程</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">kill pid # 终止进程</span><br><span class="line">kill -9 pid # 强制终止进程</span><br></pre></td></tr></table></figure>
+
+<h2 id="9-6、nohup-后台运行进程"><a href="#9-6、nohup-后台运行进程" class="headerlink" title="9.6、nohup 后台运行进程"></a>9.6、nohup 后台运行进程</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nohup java -jar jenkins.war &amp;</span><br></pre></td></tr></table></figure>
+
+<h1 id="10、环境安装"><a href="#10、环境安装" class="headerlink" title="10、环境安装"></a>10、环境安装</h1><p>三种方式：</p>
+<ul>
+<li><p>rpm</p>
+</li>
+<li><p>解压缩</p>
+</li>
+<li><p>yum在线安装</p>
+</li>
+</ul>
+<h1 id="11、防火墙"><a href="#11、防火墙" class="headerlink" title="11、防火墙"></a>11、防火墙</h1><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">systemctl status firewalld 查看firewalld状态</span><br><span class="line">systemctl</span><br><span class="line">firewall-cmd</span><br><span class="line">firewall-cmd --list-all</span><br><span class="line">firewall-cmd --add-port=8080/tcp --premanent</span><br><span class="line">firewall-cmd --reload</span><br></pre></td></tr></table></figure>
+
+<p>👉 阿里云服务器配置安全组</p>
+<hr>
+<p>🎈🎈🎈</p>
+<p>🌹 持续更文，关注我，你会发现一个踏实努力的宝藏前端😊，让我们一起学习，共同成长吧。</p>
+<p>🎉 喜欢的小伙伴记得点赞关注收藏哟，回看不迷路 😉</p>
+<p>🎁 欢迎大家评论交流, 蟹蟹😊</p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>许可协议</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/blog/2022/08/17/GitHub%20Pages%20%E7%AB%99%E7%82%B9/">GitHub Pages 站点建设<span class="note">较早</span></a><div class="line"></div></section></div>
+
+
+
+
+
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>本站由 <a href="https://all-smile.github.io/blog/blog/">@Xiao Juntao</a> 创建，使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.8.0" title="v1.8.0">Stellar</a> 作为主题。</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.8.0';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://fastly.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/blog/js/plugins/sites.js',
+    friendsjs: '/blog/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://fastly.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://fastly.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://fastly.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://fastly.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.fancybox = Object.assign({"enable":true,"js":"https://fastly.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.js","css":"https://fastly.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.css","selector":".swiper-slide img"});
+  }
+  if ('false' == 'true') {
+    stellar.plugins.heti = Object.assign({"enable":false,"css":"https://unpkg.com/heti/umd/heti.min.css","js":"https://unpkg.com/heti/umd/heti-addon.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/blog/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>
