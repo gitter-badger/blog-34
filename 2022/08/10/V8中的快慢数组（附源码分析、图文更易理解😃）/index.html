@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.2.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://fastly.jsdelivr.net'>
+  <link rel="preconnect" href="https://fastly.jsdelivr.net" crossorigin>
+  <link rel='dns-prefetch' href='//unpkg.com'>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>V8中的快慢数组（附源码分析、图文更易理解😃） - 甜点cc</title>
+
+  
+    <meta name="description" content="接上一篇 V8 中的快慢属性，本篇分析V8 中的快慢数组，了解数组全填充还是带孔、快慢数组、快慢转化、动态扩缩容等等。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="V8中的快慢数组（附源码分析、图文更易理解😃）">
+<meta property="og:url" content="https://all-smile.github.io/blog/2022/08/10/V8%E4%B8%AD%E7%9A%84%E5%BF%AB%E6%85%A2%E6%95%B0%E7%BB%84%EF%BC%88%E9%99%84%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E3%80%81%E5%9B%BE%E6%96%87%E6%9B%B4%E6%98%93%E7%90%86%E8%A7%A3%F0%9F%98%83%EF%BC%89/index.html">
+<meta property="og:site_name" content="甜点cc">
+<meta property="og:description" content="接上一篇 V8 中的快慢属性，本篇分析V8 中的快慢数组，了解数组全填充还是带孔、快慢数组、快慢转化、动态扩缩容等等。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/819317cc4d4142bea00e155929af1fae~tplv-k3u1fbpfcp-watermark.image">
+<meta property="og:image" content="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/5cd8c5fcb1764d669c875a742877de72~tplv-k3u1fbpfcp-watermark.image">
+<meta property="og:image" content="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/c62c161602f244b0b516b57a50e65b88~tplv-k3u1fbpfcp-watermark.image">
+<meta property="og:image" content="https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/540021a06a2e43379f6141d37d450b75~tplv-k3u1fbpfcp-watermark.image">
+<meta property="og:image" content="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/bae16e0c9bcb4866a16f15ad5b71f53f~tplv-k3u1fbpfcp-watermark.image">
+<meta property="og:image" content="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/05f44d5f19f840c4a7aa25eba2aef089~tplv-k3u1fbpfcp-watermark.image">
+<meta property="og:image" content="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/469c1808dc7f4a288a507e3d77c0e20e~tplv-k3u1fbpfcp-watermark.image">
+<meta property="og:image" content="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/d059832a1fd5480da0b6e62b224ef908~tplv-k3u1fbpfcp-watermark.image">
+<meta property="article:published_time" content="2022-08-10T11:53:43.000Z">
+<meta property="article:modified_time" content="2022-08-19T09:21:12.077Z">
+<meta property="article:author" content="Xiao Juntao">
+<meta property="article:tag" content="V8">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/819317cc4d4142bea00e155929af1fae~tplv-k3u1fbpfcp-watermark.image">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/blog/css/main.css">
+
+  
+
+  
+
+  
+
+  
+
+
+  
+</head>
+
+<body>
+  
+
+
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/blog/about/"><div class="bg" style="opacity:0;background-image:url(https://fastly.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="https://raw.githubusercontent.com/all-smile/nav/master/static/images/cattle.jpg" onerror="javascript:this.classList.add('error');this.src='https://fastly.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/blog/"><div class="main">甜点cc</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/blog/">文章</a><a class="nav-item" href="/blog/wiki/">项目</a><a class="nav-item" href="/blog/notes/">笔记</a><a class="nav-item" href="/blog/more/">更多</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E6%95%B0%E7%BB%84%E4%B9%9F%E6%98%AF%E5%AF%B9%E8%B1%A1%E7%B1%BB%E5%9E%8B%E7%9A%84%EF%BC%9F"><span class="toc-text">为什么数组也是对象类型的？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1%E3%80%81%E5%BF%AB%E6%95%B0%E7%BB%84%E4%BD%95%E6%97%B6%E8%BD%AC%E6%8D%A2%E4%B8%BA%E6%85%A2%E6%95%B0%E7%BB%84"><span class="toc-text">2.1、快数组何时转换为慢数组</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E3%80%81%E7%9C%8B%E4%B8%80%E4%B8%8B%E6%BA%90%E7%A0%81%E5%85%88%F0%9F%91%87"><span class="toc-text">(1)、看一下源码先👇</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E3%80%81%E5%88%86%E6%9E%90"><span class="toc-text">(2)、分析</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2%E3%80%81%E6%85%A2%E6%95%B0%E7%BB%84%E4%BD%95%E6%97%B6%E8%BD%AC%E6%8D%A2%E4%B8%BA%E5%BF%AB%E6%95%B0%E7%BB%84"><span class="toc-text">2.2、慢数组何时转换为快数组</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E3%80%81%E7%9C%8B%E4%B8%80%E4%B8%8B%E6%BA%90%E7%A0%81%E5%85%88%F0%9F%91%87-1"><span class="toc-text">(1)、看一下源码先👇</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E3%80%81%E5%88%86%E6%9E%90-1"><span class="toc-text">(2)、分析</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BF%AB%E6%85%A2%E8%BD%AC%E6%8D%A2%E6%80%BB%E7%BB%93"><span class="toc-text">快慢转换总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1%E3%80%81%E6%89%A9%E5%AE%B9"><span class="toc-text">3.1、扩容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-%E7%BC%A9%E5%AE%B9"><span class="toc-text">3.2 缩容</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/blog/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/blog/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/blog/categories/%E5%89%8D%E7%AB%AF/">前端</a></div><div id="post-meta">发布于&nbsp;<time datetime="2022-08-10T11:53:43.000Z">2022-08-10</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>V8中的快慢数组（附源码分析、图文更易理解😃）</span></h1>
+<blockquote>
+<p>接上一篇 <a target="_blank" rel="noopener" href="https://juejin.cn/post/7125763016582234142">V8 中的快慢属性</a>，本篇分析V8 中的快慢数组，了解数组全填充还是带孔、快慢数组、快慢转化、动态扩缩容等等。其实很多语言底层都采用类似的处理方式，比如：Golang中切片的append操作就涉及扩容处理。</p>
+</blockquote>
+<p>🎁 D8调试工具使用请来<a target="_blank" rel="noopener" href="https://juejin.cn/post/7126505899337711647">这里</a></p>
+<h1 id="1、全填充-or-带孔"><a href="#1、全填充-or-带孔" class="headerlink" title="1、全填充 or 带孔"></a>1、全填充 or 带孔</h1><p>通过一个小李子，看一下什么是全填充数组(<code>Paked-Array</code>)，什么是带孔数组(<code>Holey-Array</code>)</p>
+<p>前面还写了<strong>稀疏数组</strong>，稀疏数组更加具有业务应用性，清洗的是无意义的数据，可以对比带孔数组来分析一下，有兴趣请看👉 <a target="_blank" rel="noopener" href="https://juejin.cn/post/7124557913921847327">稀疏数组——实现五子棋存盘和续上盘功能</a></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> o = [<span class="string">&#x27;a&#x27;</span>, <span class="string">&#x27;b&#x27;</span>, <span class="string">&#x27;c&#x27;</span>]</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(o[<span class="number">1</span>])          <span class="comment">// &#x27;b&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">delete</span> o[<span class="number">1</span>]</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(o[<span class="number">1</span>])          <span class="comment">// undefined</span></span><br><span class="line">o.<span class="property">__proto__</span> = &#123; <span class="number">1</span>: <span class="string">&#x27;B&#x27;</span> &#125;</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(o[<span class="number">0</span>])          <span class="comment">// &#x27;a&#x27;</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(o[<span class="number">1</span>])          <span class="comment">// &#x27;B&#x27;   但如何确定要访问原型链？？🤔</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(o[<span class="number">2</span>])          <span class="comment">// &#x27;c&#x27;</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(o[<span class="number">3</span>])          <span class="comment">// undefined</span></span><br></pre></td></tr></table></figure>
+
+<p>如果一个数组中所有位置均有值，我们称之为<code>全填充</code>（<strong>Packed</strong>）数组；</p>
+<p>若某些位置在初始化时未定义（如 <code>const arr = [1, , 3]</code> 中的 arr[1]），或定义后被删除（delete，如上述例子），称之为<code>带孔</code>（<strong>Holey</strong>）数组。</p>
+<p>该例子在 V8 的访问可以通过下图解释：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/819317cc4d4142bea00e155929af1fae~tplv-k3u1fbpfcp-watermark.image" alt="image.png"></p>
+<p>一开始数组 o 是 packed 的，所以访问 o[1] 时可以直接获取值，而不需要访问原型。</p>
+<p>而行 4：<code>delete o[1]</code> 为数组引入了一个孔洞（<code>the_hole</code>），用于标记不存在的属性，同时又行 6 为 o 定义了原型上的 1 属性，当再次获取 o[1] 时会<strong>穿孔</strong>进而继续往原型链上查询。原型链上的查询是昂贵的，<em>可以根据是否有 the_hole 来降低这部分查询开销</em>。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/5cd8c5fcb1764d669c875a742877de72~tplv-k3u1fbpfcp-watermark.image" alt="image.png"></p>
+<h1 id="2、快慢数组"><a href="#2、快慢数组" class="headerlink" title="2、快慢数组"></a>2、快慢数组</h1><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> arr = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]</span><br><span class="line">arr[<span class="number">1999</span>] = <span class="number">1999</span></span><br><span class="line"><span class="comment">// arr 会如何存储？</span></span><br></pre></td></tr></table></figure>
+
+<p>这个例子中，在行 1 声明完毕后 arr 是一个全填充的数组，但在行 2 马上又定义索引 1999 处值为 1999，此时如果为 arr 创建一个长度为 2000 的完整数组来存储这样的稀疏数据将会非常占用内存，为了应对这种情况，V8 会将数组降级为<code>慢数组</code>，创建一个字典来存储<code>「键、值、描述符」</code>（<strong>key、value、descriptor</strong>） 三元组。这就是 <code>Object.defineProperty(object, key, descriptor)</code> API 同样会做的事情。</p>
+<blockquote>
+<ol>
+<li><p>鉴于我们没有办法在 JavaScript 的 API 层面让 V8 找到 HiddenClass 并存储对应的 descriptor 信息，所以当使用 <code>Object.defineProperty</code> 自定义 key、value、descriptor 时，V8 都会使用慢属性，对应到数组中就是慢数组。</p>
+</li>
+<li><p><code>Object.defineProperty</code> 是 Vue 2 的核心 API，当对象或数组很庞大时，不可避免地导致访问速度下降，这是底层原理决定的。</p>
+</li>
+</ol>
+</blockquote>
+<p>那究竟什么是快数组和慢数组呢？我们看下V8底层对于数组的定义：👉 <a target="_blank" rel="noopener" href="https://source.chromium.org/chromium/chromium/src/+/master:v8/src/objects/js-array.h">源代码：v8&#x2F;src&#x2F;objects&#x2F;js-array.h</a></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/c62c161602f244b0b516b57a50e65b88~tplv-k3u1fbpfcp-watermark.image" alt="image.png"></p>
+<ul>
+<li><p>快模式：数组实现的是 V8 里一个叫 <code>FixedArray</code> 的类，它在内存中是<strong>连续的空间</strong>，直接通过索引读写值，非常快。如果有 push 或 pop 操作，它会动态地扩容或收缩。</p>
+</li>
+<li><p>慢模式：如前文所介绍，V8 创建了一个字典（<code>HashTable</code>）来记录映射关系，其中索引的整数值即是字典的键。</p>
+</li>
+</ul>
+<h2 id="为什么数组也是对象类型的？"><a href="#为什么数组也是对象类型的？" class="headerlink" title="为什么数组也是对象类型的？"></a>为什么数组也是对象类型的？</h2><p>在 V8 源码中清晰地表明，JSArray 继承自 JSObject，即数组是一个特殊的对象，而 JS 中所有非原始类型都是对象的实例，所以 JS 中数组可以存储多种类型的值。</p>
+<p>数组内部也是用key-value的存储形式</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> testArr = [<span class="number">1</span>, <span class="string">&quot;hello&quot;</span>, <span class="literal">true</span>, <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;];</span><br></pre></td></tr></table></figure>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/540021a06a2e43379f6141d37d450b75~tplv-k3u1fbpfcp-watermark.image" alt="image.png"></p>
+<h2 id="2-1、快数组何时转换为慢数组"><a href="#2-1、快数组何时转换为慢数组" class="headerlink" title="2.1、快数组何时转换为慢数组"></a>2.1、快数组何时转换为慢数组</h2><h3 id="1-、看一下源码先👇"><a href="#1-、看一下源码先👇" class="headerlink" title="(1)、看一下源码先👇"></a>(1)、看一下源码先👇</h3><ol>
+<li><p>path:v8&#x2F;src&#x2F;objects&#x2F;js-objects-inl.h</p>
+<p> 快慢模式转化： <code>ShouldConvertToSlowElements</code></p>
+</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">// path:v8/src/objects/js-objects-inl.h</span><br><span class="line"></span><br><span class="line">// If the fast-case backing storage takes up much more memory than a dictionary</span><br><span class="line">// backing storage would, the object should have slow elements.</span><br><span class="line">// static</span><br><span class="line">static inline bool ShouldConvertToSlowElements(uint32_t used_elements,</span><br><span class="line">                                               uint32_t new_capacity) &#123;</span><br><span class="line">  uint32_t size_threshold = NumberDictionary::kPreferFastElementsSizeFactor *</span><br><span class="line">                            NumberDictionary::ComputeCapacity(used_elements) *</span><br><span class="line">                            NumberDictionary::kEntrySize;</span><br><span class="line">  return size_threshold &lt;= new_capacity;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">static inline bool ShouldConvertToSlowElements(JSObject object,</span><br><span class="line">                                               uint32_t capacity,</span><br><span class="line">                                               uint32_t index,</span><br><span class="line">                                               uint32_t* new_capacity) &#123;</span><br><span class="line">  STATIC_ASSERT(JSObject::kMaxUncheckedOldFastElementsLength &lt;=</span><br><span class="line">                JSObject::kMaxUncheckedFastElementsLength);</span><br><span class="line">  if (index &lt; capacity) &#123;</span><br><span class="line">    *new_capacity = capacity;</span><br><span class="line">    return false;</span><br><span class="line">  &#125;</span><br><span class="line">  if (index - capacity &gt;= JSObject::kMaxGap) return true;</span><br><span class="line">  *new_capacity = JSObject::NewElementsCapacity(index + 1);</span><br><span class="line">  DCHECK_LT(index, *new_capacity);</span><br><span class="line">  if (*new_capacity &lt;= JSObject::kMaxUncheckedOldFastElementsLength ||</span><br><span class="line">      (*new_capacity &lt;= JSObject::kMaxUncheckedFastElementsLength &amp;&amp;</span><br><span class="line">       ObjectInYoungGeneration(object))) &#123;</span><br><span class="line">    return false;</span><br><span class="line">  &#125;</span><br><span class="line">  return ShouldConvertToSlowElements(object.GetFastElementsUsage(),</span><br><span class="line">                                     *new_capacity);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-、分析"><a href="#2-、分析" class="headerlink" title="(2)、分析"></a>(2)、分析</h3><ul>
+<li><p>如果快数组扩容后的容量是原来的 <strong>3 倍以上</strong>，意味着它比 <code>HashTable</code> 形式存储占用更大的内存，快数组会转换为慢数组</p>
+</li>
+<li><p>如果快数组新增的索引与原来最大索引的差值大于 1024，快数组会被转换会慢数组</p>
+</li>
+</ul>
+<p>所以，前面的例子：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> arr = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>];</span><br><span class="line">arr[<span class="number">1999</span>] = <span class="number">1999</span>;</span><br><span class="line">%<span class="title class_">DebugPrint</span>(arr);</span><br></pre></td></tr></table></figure>
+
+<p><code>1999 - 2 &gt; 1024</code>，arr 从快数组转换为哈希形式存储的慢数组。</p>
+<p>下面看一下详细运行信息👇</p>
+<ul>
+<li>修改arr之前:</li>
+</ul>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/bae16e0c9bcb4866a16f15ad5b71f53f~tplv-k3u1fbpfcp-watermark.image" alt="image.png"></p>
+<ul>
+<li>修改arr之后：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/05f44d5f19f840c4a7aa25eba2aef089~tplv-k3u1fbpfcp-watermark.image" alt="9c1a1af43947b4da39b9c554d56c312.png"></li>
+</ul>
+<h2 id="2-2、慢数组何时转换为快数组"><a href="#2-2、慢数组何时转换为快数组" class="headerlink" title="2.2、慢数组何时转换为快数组"></a>2.2、慢数组何时转换为快数组</h2><h3 id="1-、看一下源码先👇-1"><a href="#1-、看一下源码先👇-1" class="headerlink" title="(1)、看一下源码先👇"></a>(1)、看一下源码先👇</h3><ol>
+<li>path:v8&#x2F;src&#x2F;objects&#x2F;js-objects.cc</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">// path:v8/src/objects/js-objects.cc</span><br><span class="line"></span><br><span class="line">// line:4932</span><br><span class="line">static bool ShouldConvertToFastElements(JSObject object,</span><br><span class="line">                                        NumberDictionary dictionary,</span><br><span class="line">                                        uint32_t index,</span><br><span class="line">                                        uint32_t* new_capacity) &#123;</span><br><span class="line">  // If properties with non-standard attributes or accessors were added, we</span><br><span class="line">  // cannot go back to fast elements.</span><br><span class="line">  if (dictionary.requires_slow_elements()) return false;</span><br><span class="line"></span><br><span class="line">  // Adding a property with this index will require slow elements.</span><br><span class="line">  if (index &gt;= static_cast&lt;uint32_t&gt;(Smi::kMaxValue)) return false;</span><br><span class="line"></span><br><span class="line">  if (object.IsJSArray()) &#123;</span><br><span class="line">    Object length = JSArray::cast(object).length();</span><br><span class="line">    if (!length.IsSmi()) return false;</span><br><span class="line">    *new_capacity = static_cast&lt;uint32_t&gt;(Smi::ToInt(length));</span><br><span class="line">  &#125; else if (object.IsJSArgumentsObject()) &#123;</span><br><span class="line">    return false;</span><br><span class="line">  &#125; else &#123;</span><br><span class="line">    *new_capacity = dictionary.max_number_key() + 1;</span><br><span class="line">  &#125;</span><br><span class="line">  *new_capacity = std::max(index + 1, *new_capacity);</span><br><span class="line"></span><br><span class="line">  uint32_t dictionary_size = static_cast&lt;uint32_t&gt;(dictionary.Capacity()) *</span><br><span class="line">                             NumberDictionary::kEntrySize;</span><br><span class="line"></span><br><span class="line">  // 看这里👇， 当慢数组转换成快数组能节省 不少于 50% 的空间时，才会将其转换</span><br><span class="line">  // Turn fast if the dictionary only saves 50% space.</span><br><span class="line">  return 2 * dictionary_size &gt;= *new_capacity;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-、分析-1"><a href="#2-、分析-1" class="headerlink" title="(2)、分析"></a>(2)、分析</h3><p>元素能存放在快数组中并且长度不在smi之间（64位-2^31到2^32-1），并且当前慢数组空间相比快数组节省值小于等于50%，则转变成为快数组。</p>
+<h2 id="快慢转换总结"><a href="#快慢转换总结" class="headerlink" title="快慢转换总结"></a>快慢转换总结</h2><ul>
+<li><p>快数组就是以空间换时间的方式，申请了大块连续内存，提高了执行效率。</p>
+</li>
+<li><p>慢数组以时间换空间，不必申请连续的空间，节省了内存，但需要付出效率变差的代价。</p>
+</li>
+</ul>
+<h1 id="3、动态扩容与收缩"><a href="#3、动态扩容与收缩" class="headerlink" title="3、动态扩容与收缩"></a>3、动态扩容与收缩</h1><h2 id="3-1、扩容"><a href="#3-1、扩容" class="headerlink" title="3.1、扩容"></a>3.1、扩容</h2><p>看下源码👇</p>
+<ol>
+<li><p>path:v8&#x2F;src&#x2F;objects&#x2F;js-array.h</p>
+<p> 空数组预分配的大小: 4</p>
+</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">// path:v8/src/objects/js-array.h</span><br><span class="line"></span><br><span class="line">// Dispatched behavior.</span><br><span class="line">DECL_PRINTER(JSArray)</span><br><span class="line">DECL_VERIFIER(JSArray)</span><br><span class="line"></span><br><span class="line">// Number of element slots to pre-allocate for an empty array.</span><br><span class="line">// 空数组预分配的大小为4</span><br><span class="line">static const int kPreallocatedArrayElements = 4;</span><br><span class="line"></span><br><span class="line">static const int kLengthDescriptorIndex = 0;</span><br></pre></td></tr></table></figure>
+
+<p>上面代码表明，当声明一个空数组时，已预分配好 4 个字节的存储空间。</p>
+<p>所以 [] 与 [1, 2, 3, 4] 占用一样多的内存。 前面说过，JSArray 继承自 JSObject，我们可以在 js-objects.h 中找到如下代码：</p>
+<ol start="2">
+<li><p>path:v8&#x2F;src&#x2F;objects&#x2F;js-objects.h</p>
+<p> 扩容公式</p>
+</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">// path:v8/src/objects/js-objects.h</span><br><span class="line"></span><br><span class="line">// line:551👇</span><br><span class="line">static const uint32_t kMinAddedElementsCapacity = 16;</span><br><span class="line"></span><br><span class="line">// Computes the new capacity when expanding the elements of a JSObject.</span><br><span class="line">static uint32_t NewElementsCapacity(uint32_t old_capacity) &#123;</span><br><span class="line">  // (old_capacity + 50%) + kMinAddedElementsCapacity</span><br><span class="line">  // 扩容公式:原有内存容量（1.5倍）+ 16</span><br><span class="line">  return old_capacity + (old_capacity &gt;&gt; 1) + kMinAddedElementsCapacity;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这是对 JSObject elements 扩容和对 JSArray 扩容的通用方法。扩容后容量的计算逻辑是：<strong>在原占用空间 old_capacity 的基础上增加一半（old_capacity &gt;&gt; 1 右移 1 位表示除 2，再相加得原空间 1.5 倍），再加上 16</strong>。</p>
+<p><strong>举例：</strong></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> arr = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>];</span><br><span class="line">arr.<span class="title function_">push</span>(<span class="number">5</span>);</span><br><span class="line">%<span class="title class_">DebugPrint</span>(arr);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>arr.push 之前：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/469c1808dc7f4a288a507e3d77c0e20e~tplv-k3u1fbpfcp-watermark.image" alt="image.png"></p>
+</li>
+<li><p>arr.push 后：</p>
+</li>
+</ul>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/d059832a1fd5480da0b6e62b224ef908~tplv-k3u1fbpfcp-watermark.image" alt="image.png"></p>
+<p><strong>具体分析如下：</strong><br>👇</p>
+<ol>
+<li><p>向数组 [1, 2, 3, 4] push 5 时，首先判断到当前容量已满，需要计算新容量。</p>
+</li>
+<li><p>old_capacity &#x3D; 4，new_capacity &#x3D; 4 + 4 &gt;&gt; 1 + 16 &#x3D; 22，得出 [1, 2, 3, 4, 5] 的容量为 22 个字节，</p>
+</li>
+<li><p>V8 向操作系统申请一块连续大小为 22 字节的内存空间，随后将老数据一一 copy，再新将新增元素写入。</p>
+</li>
+</ol>
+<h2 id="3-2-缩容"><a href="#3-2-缩容" class="headerlink" title="3.2 缩容"></a>3.2 缩容</h2><p>紧接着，我们在 <code>src/objects/elements.cc</code> 中找到 <code>SetLengthImpl</code> 方法中的如下代码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">// path:src/objects/elements.cc</span><br><span class="line"></span><br><span class="line">// line:750</span><br><span class="line">if (2 * length + JSObject::kMinAddedElementsCapacity &lt;= capacity) &#123;</span><br><span class="line">  // If more than half the elements won&#x27;t be used, trim the array.</span><br><span class="line">  // Do not trim from short arrays to prevent frequent trimming on</span><br><span class="line">  // repeated pop operations.</span><br><span class="line">  // Leave some space to allow for subsequent push operations.</span><br><span class="line">  int elements_to_trim = length + 1 == old_length</span><br><span class="line">                             ? (capacity - length) / 2</span><br><span class="line">                             : capacity - length;</span><br><span class="line">  isolate-&gt;heap()-&gt;RightTrimFixedArray(*backing_store, elements_to_trim);</span><br><span class="line">  // Fill the non-trimmed elements with holes.</span><br><span class="line">  BackingStore::cast(*backing_store)</span><br><span class="line">      .FillWithHoles(length,</span><br><span class="line">                     std::min(old_length, capacity - elements_to_trim));</span><br><span class="line">&#125; else &#123;</span><br><span class="line">  // Otherwise, fill the unused tail with holes.</span><br><span class="line">  BackingStore::cast(*backing_store).FillWithHoles(length, old_length);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当数组元素减少（如 pop）后，如果数组容量大于等于 length 的 2 倍，则进行容量调整，使用 <code>RightTrimFixedArray</code> 函数，计算出需要释放的空间大小，做好标记，等待 GC 回收；如果数组容量小于 length 的 2 倍，则用 holes 对象填充。</p>
+<h1 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h1><ol>
+<li><p>数组元素少的时候是线性结构存储（FixedArray）的，内存地址连续，查找速度快，可以动态扩缩容；</p>
+</li>
+<li><p>数组元素多的时候转化为慢数组，通过创建了一个字典来记录映射关系，内存不连续，通过大名鼎鼎的Object.defineProperty(object, key, descriptor)创建</p>
+</li>
+</ol>
+<p>js的数组看似不同，其实只是V8 在底层实现上做了一层封装，使用两种数据结构实现数组，并且通过时间和空间2个纬度的取舍，优化了数组的性能。</p>
+<p><a target="_blank" rel="noopener" href="https://z3rog.tech/blog/2020/fast-properties.html">参考学习博客</a></p>
+<hr>
+<p>🎈🎈🎈</p>
+<p>🌹 关注我，你会发现一个踏实努力的宝藏前端😊，让我们一起学习，共同成长吧。</p>
+<p>🎉 喜欢的小伙伴记得<strong>点赞关注收藏</strong>哟，回看不迷路 😉</p>
+<p>✨ 欢迎大家转发、评论交流</p>
+<p>🎁 蟹蟹😊</p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>许可协议</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/blog/2022/08/10/Actions/">Actions<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/blog/2022/08/17/D8%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E2%80%94%E2%80%94jsvu%E7%9A%84%E4%BD%BF%E7%94%A8%E7%BB%86%E5%88%99/">D8调试工具——jsvu的使用细则<span class="note">较新</span></a></section></div>
+
+
+<div class="related-wrap reveal" id="related-posts">
+    <section class='header'>
+      <div class='title cap theme'>您可能感兴趣的文章</div>
+    </section>
+    <section class='body'>
+    <div class="related-posts"><a class="item" href="/blog/2022/08/17/D8调试工具——jsvu的使用细则/" title="D8调试工具——jsvu的使用细则"><div class="img"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://source.unsplash.com/1280x640/?V8" /></div><span class="title">D8调试工具——jsvu的使用细则</span><span class="excerpt">D8 是一个非常有用的调试工具，可以使用 d8 来查看 V8 在编译执行 JavaScript 过程中的各种中间数据，本文通过jsvu安装D8。</span></a></div></section></div>
+
+
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>本站由 <a href="https://all-smile.github.io/blog/blog/">@Xiao Juntao</a> 创建，使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.8.0" title="v1.8.0">Stellar</a> 作为主题。</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.8.0';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://fastly.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/blog/js/plugins/sites.js',
+    friendsjs: '/blog/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://fastly.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://fastly.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://fastly.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://fastly.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.fancybox = Object.assign({"enable":true,"js":"https://fastly.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.js","css":"https://fastly.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.css","selector":".swiper-slide img"});
+  }
+  if ('false' == 'true') {
+    stellar.plugins.heti = Object.assign({"enable":false,"css":"https://unpkg.com/heti/umd/heti.min.css","js":"https://unpkg.com/heti/umd/heti-addon.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/blog/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>
