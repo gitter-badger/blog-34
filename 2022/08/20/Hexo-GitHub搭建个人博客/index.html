@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.2.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://fastly.jsdelivr.net'>
+  <link rel="preconnect" href="https://fastly.jsdelivr.net" crossorigin>
+  <link rel='dns-prefetch' href='//unpkg.com'>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>Hexo+GitHub搭建个人博客 - 甜点cc</title>
+
+  
+    <meta name="description" content="使用Hexo搭建静态博客，并结合GitHub Actions从手动发布实现自动发布，一站式教程，Hexo写博客真香。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hexo+GitHub搭建个人博客">
+<meta property="og:url" content="https://all-smile.github.io/blog/2022/08/20/Hexo-GitHub%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/index.html">
+<meta property="og:site_name" content="甜点cc">
+<meta property="og:description" content="使用Hexo搭建静态博客，并结合GitHub Actions从手动发布实现自动发布，一站式教程，Hexo写博客真香。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://files.mdnice.com/user/34064/5dd21663-e0b3-4304-9bb4-a65dded21137.png">
+<meta property="og:image" content="https://files.mdnice.com/user/34064/a973732c-bccb-4fbd-ba95-8fb1ef2945fa.png">
+<meta property="og:image" content="https://files.mdnice.com/user/34064/ff1f8baa-c9cb-4570-97a5-bee921649715.png">
+<meta property="og:image" content="https://files.mdnice.com/user/34064/b9ccbe53-b080-41ba-8b10-fd9810d6b1e3.jpg">
+<meta property="og:image" content="https://files.mdnice.com/user/34064/8818f33d-14ce-4d4d-ae58-079f5e90b023.png">
+<meta property="og:image" content="https://files.mdnice.com/user/34064/16070f38-5c57-482d-a1bc-5d2fa3318221.png">
+<meta property="og:image" content="https://files.mdnice.com/user/34064/e2f6afbc-71e8-4fc2-bcdd-181d2dd96a6c.png">
+<meta property="og:image" content="https://files.mdnice.com/user/34064/3428f5ca-7730-4128-9c51-1fce5c063e99.png">
+<meta property="og:image" content="https://files.mdnice.com/user/34064/13a98b38-a16c-4997-8a33-f825bb86fb07.png">
+<meta property="og:image" content="https://files.mdnice.com/user/34064/9952cb44-cc50-467c-a6b4-36cab774f436.png">
+<meta property="og:image" content="https://files.mdnice.com/user/34064/81d50c5b-188b-4925-b1f8-0da53d697b65.jpg">
+<meta property="og:image" content="https://files.mdnice.com/user/34064/909ecbe7-ad36-4d09-a511-6236bdc317c5.png">
+<meta property="og:image" content="https://files.mdnice.com/user/34064/99653c2c-38e5-4a03-a190-1dad2586c372.png">
+<meta property="article:published_time" content="2022-08-20T12:26:50.000Z">
+<meta property="article:modified_time" content="2022-08-20T12:35:49.926Z">
+<meta property="article:author" content="Xiao Juntao">
+<meta property="article:tag" content="Hexo">
+<meta property="article:tag" content="GitHub Actions">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://files.mdnice.com/user/34064/5dd21663-e0b3-4304-9bb4-a65dded21137.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/blog/css/main.css">
+
+  
+
+  
+
+  
+
+  
+
+
+  
+</head>
+
+<body>
+  
+
+
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/blog/about/"><div class="bg" style="opacity:0;background-image:url(https://fastly.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="https://raw.githubusercontent.com/all-smile/nav/master/static/images/cattle.jpg" onerror="javascript:this.classList.add('error');this.src='https://fastly.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/blog/"><div class="main">甜点cc</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/blog/">文章</a><a class="nav-item" href="/blog/wiki/">项目</a><a class="nav-item" href="/blog/notes/">笔记</a><a class="nav-item" href="/blog/more/">更多</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#4-1%E3%80%81%E6%9F%A5%E7%9C%8B%E6%95%88%E6%9E%9C"><span class="toc-text">4.1、查看效果</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-1%E3%80%81%E6%94%AF%E6%8C%81%E7%9A%84%E4%BB%A4%E7%89%8C"><span class="toc-text">6.1、支持的令牌</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-2%E3%80%81%E6%94%AF%E6%8C%81%E7%9A%84%E5%B9%B3%E5%8F%B0"><span class="toc-text">6.2、支持的平台</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-1%E3%80%81%E8%AE%BE%E7%BD%AE-SSH-%E7%A7%81%E9%92%A5-deploy-key"><span class="toc-text">7.1、设置 SSH 私钥 deploy_key</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-2%E3%80%81%E6%96%B0%E5%BB%BA-github-x2F-workflows-x2F-pages-yml-%E6%96%87%E4%BB%B6"><span class="toc-text">7.2、新建 .github&#x2F;workflows&#x2F;pages.yml 文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-3%E3%80%81%E4%BF%AE%E6%94%B9-config-yml-%E6%96%87%E4%BB%B6%E4%B8%AD%E7%9A%84Deploy%E9%85%8D%E7%BD%AE"><span class="toc-text">7.3、修改 _config.yml 文件中的Deploy配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%91%E5%B8%83%E6%95%88%E6%9E%9C"><span class="toc-text">发布效果</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Hexo%E4%B8%BB%E9%A2%98"><span class="toc-text">Hexo主题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-1%E3%80%81%E9%9D%9E%E6%B3%95%E8%BE%93%E5%85%A5%E5%80%BC"><span class="toc-text">8.1、非法输入值</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-2%E3%80%81The-process-%E2%80%98-x2F-usr-x2F-bin-x2F-git%E2%80%99-failed-with-exit-code-128"><span class="toc-text">8.2、The process ‘&#x2F;usr&#x2F;bin&#x2F;git’ failed with exit code 128</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-3%E3%80%81deploy-key%E9%97%AE%E9%A2%98"><span class="toc-text">8.3、deploy key问题</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/blog/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/blog/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/blog/categories/Hexo/">Hexo</a></div><div id="post-meta">发布于&nbsp;<time datetime="2022-08-20T12:26:50.000Z">2022-08-20</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>Hexo+GitHub搭建个人博客</span></h1>
+<blockquote>
+<p>操作环境：Windows10、Node、Git、ssh</p>
+<p>前置准备: <code>&lt;username&gt;github.io</code> 仓库已建立，预计托管博客网址为<code>&lt;username&gt;github.io/blog</code></p>
+</blockquote>
+<p>先对hexo有个清晰的认识，不至于稀里糊涂的跟着步骤走。</p>
+<h1 id="1、Hexo发布博客流程概览"><a href="#1、Hexo发布博客流程概览" class="headerlink" title="1、Hexo发布博客流程概览"></a>1、Hexo发布博客流程概览</h1><ol>
+<li><p>搭建hexo环境</p>
+</li>
+<li><p><code>hexo new &quot;title&quot;</code> (创建新文章)</p>
+</li>
+<li><p>编写md文档</p>
+</li>
+<li><p><code>hexo clean</code></p>
+</li>
+</ol>
+<ul>
+<li>清除缓存文件 (db.json) 和已生成的静态文件 (public)</li>
+</ul>
+<ol start="5">
+<li><p><code>hexo generate</code> (生成静态文件)</p>
+</li>
+<li><p><code>hexo deploy</code> (Hexo 会将 public 目录中的文件和目录推送至 <code>_config.yml</code> 中指定的远端仓库和分支中，并且完全覆盖该分支下的已有内容。)</p>
+</li>
+<li><p>本地仓库同步到GitHub (不同步的话，文章源码只会保留在本地，不易管理)</p>
+</li>
+</ol>
+<blockquote>
+<p>由于 Hexo 的部署默认使用分支 master，所以如果你同时正在使用 Git 管理你的站点目录，你应当注意你的部署分支应当不同于写作分支。</p>
+<p>Hexo 在部署你的站点生成的文件时并不会更新你的站点目录。因此你应该手动提交并推送你的写作分支。</p>
+</blockquote>
+<p>一般来说第一步环境搭建只需要在最开始创建博客网站的时候进行，写文的话只需要重复第2-7步就可以了，这种使用方式强烈依赖于本地环境。但是，有时候我们并不只是固定在一台电脑上写文，（比如：一直写文的电脑坏了，需要换新电脑；电脑重装系统等等）这样就需要在另一台电脑上搭建环境，这样非常的麻烦，而且难免会带来一些其它依赖版本兼容问题。所以，可以采用<code>GitHub Actions</code>持续集成平台来简化发布文章的流程。</p>
+<p>简化后的流程如下：</p>
+<ol>
+<li><p><code>hexo new &quot;title&quot;</code> (创建新文章)</p>
+</li>
+<li><p>编写md文档</p>
+</li>
+<li><p>本地仓库同步到GitHub</p>
+</li>
+</ol>
+<ul>
+<li>push到GitHub上之后，<code>GitHub Actions</code>会监听分支文件变动，触发发布流程（跟Jenkins 构建流程类似）</li>
+</ul>
+<p>下文整体分为两个步骤：</p>
+<ol>
+<li><p>借助<code>GitHub Pages</code>手动部署。</p>
+</li>
+<li><p>增加<code>GitHub Actions</code>配置，完成自动部署</p>
+</li>
+</ol>
+<h1 id="2、Hexo-搭建博客"><a href="#2、Hexo-搭建博客" class="headerlink" title="2、Hexo 搭建博客"></a>2、Hexo 搭建博客</h1><p>Hexo 是一个快速、简洁且高效的博客框架。Hexo 使用 Markdown（或其他渲染引擎）解析文章，在几秒内，即可利用靓丽的主题生成静态网页。</p>
+<p><a target="_blank" rel="noopener" href="https://hexo.io/docs/">文档</a></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">npm install -g hexo-cli</span><br><span class="line"><span class="built_in">cd</span> [workspace]</span><br><span class="line">hexo init &lt;folder:blog&gt;</span><br><span class="line"><span class="built_in">cd</span> &lt;folder:blog&gt;</span><br><span class="line">npm install</span><br><span class="line">hexo s</span><br></pre></td></tr></table></figure>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://files.mdnice.com/user/34064/5dd21663-e0b3-4304-9bb4-a65dded21137.png"></p>
+<p>网站基础配置修改参考<a target="_blank" rel="noopener" href="https://hexo.io/docs/configuration">这里</a></p>
+<h1 id="3、GitHub-托管-Hexo-博客"><a href="#3、GitHub-托管-Hexo-博客" class="headerlink" title="3、GitHub 托管 Hexo 博客"></a>3、GitHub 托管 Hexo 博客</h1><blockquote>
+<p>可以采取<code>分支管理</code>的方式，也可以新建repo，在ci配置上略有不同，这里我采用的是将<code>hexo</code>博客源码托管到<code>独立的repo上</code>，将 <code>Hexo</code> 项目编译生成静态页面，部署到 <code>gh-pages</code> 分支</p>
+</blockquote>
+<ol>
+<li><p>新建仓库：<code>blog</code> （名字自己起）</p>
+</li>
+<li><p>本地hexo仓库关联远程GitHub仓库<br>将本地仓库推送到远端</p>
+</li>
+<li><p>本地仓库一些必要的修改配置</p>
+</li>
+</ol>
+<ul>
+<li><p>安装 <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo-deployer-git">hexo-deployer-git</a>。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://github.com/hexojs/hexo-deployer-git</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>修改<code>_config.yml</code>配置，如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">url: https://all-smile.github.io/blog</span><br><span class="line">root: /blog/</span><br><span class="line"></span><br><span class="line"><span class="comment"># ...</span></span><br><span class="line"></span><br><span class="line">deploy:</span><br><span class="line">  <span class="built_in">type</span>: <span class="string">&#x27;git&#x27;</span></span><br><span class="line">  repo: git@github.com:all-smile/blog.git</span><br><span class="line">  branch: gh-pages</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>提交到远程仓库</p>
+</li>
+</ul>
+<ol start="3">
+<li>创建 <code>gh-pages</code> 分支</li>
+</ol>
+<p>hexo结合GitHub创建个人网站指定的分支名，hexo 内默认设置的分支也是叫这个名字</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git checkout -b gh-pages</span><br><span class="line">git push -u origin gh-pages</span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li>远程仓库开启 github pages</li>
+</ol>
+<p>指定部署分支：gh-pages</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://files.mdnice.com/user/34064/a973732c-bccb-4fbd-ba95-8fb1ef2945fa.png"></p>
+<h1 id="4、手动部署"><a href="#4、手动部署" class="headerlink" title="4、手动部署"></a>4、手动部署</h1><p>本地项目执行命令：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">hexo clean</span><br><span class="line">hexo g</span><br><span class="line">hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>hexo模板引擎生成静态文件，并推送到<code>gh-pages</code>分支下（替换原先分支下的所有文件）</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://files.mdnice.com/user/34064/ff1f8baa-c9cb-4570-97a5-bee921649715.png"></p>
+<p>到这里就已经完成了博客的搭建</p>
+<blockquote>
+<p>需要注意的是：<code>hexo deploy</code> 命令并不会帮助我们同步本地的修改到远程仓库，所以当在本地写完博文之后，要做两件事：一是发布站点，二是同步远程仓库，这样做比较麻烦，下面会讲解如何配置<code>持续集成</code></p>
+</blockquote>
+<h2 id="4-1、查看效果"><a href="#4-1、查看效果" class="headerlink" title="4.1、查看效果"></a>4.1、查看效果</h2><p>这里我配置了自定义域名</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://files.mdnice.com/user/34064/b9ccbe53-b080-41ba-8b10-fd9810d6b1e3.jpg"></p>
+<h1 id="5、自动部署"><a href="#5、自动部署" class="headerlink" title="5、自动部署"></a>5、自动部署</h1><blockquote>
+<p>就是DevOps，可以理解成 <code>GitHub</code> 通过一些<code>流水线</code>的配置（CI&#x2F;CD），然后在本地推送代码的时候触发<code>流水线</code>执行，自动部署站点。</p>
+</blockquote>
+<p>由于 <code>GitHub Actions</code> 也可以实现CI&#x2F;CD，<code>travis-ci</code> 的市场被挤压了，所以他们改变了运营策略，变成收费使用了！我们换用 <code>GitHub Actions</code></p>
+<p><code>GitHub Actions</code> 是开源持续集成构建项目，用来持续集成托管在GitHub上的代码，使用起来也非常的简单方便。</p>
+<p>使用 <code>GitHub Actions</code> 后，可以将前面部署的步骤自动化，我们只需要将本地修改的文件推送到 <code>github</code> 仓库，<code>GitHub Actions</code> 检测到 <code>master</code> 分支代码有变动，会自动执行脚本命令，将 <code>Hexo</code> 项目编译生成静态页面，部署到 <code>gh-pages</code> 分支，very good！</p>
+<h1 id="6、GitHub-Actions"><a href="#6、GitHub-Actions" class="headerlink" title="6、GitHub Actions"></a>6、GitHub Actions</h1><p><code>GitHub Actions</code>文档请点击<a target="_blank" rel="noopener" href="https://docs.github.com/cn/actions">这里</a></p>
+<blockquote>
+<p>使用<code>Github Action</code>来部署<code>hexo</code>，这样电脑本地就不需要安装npm相关的东西了。另外利用<code>github.dev</code>也可以实现在页面上编辑了。</p>
+<p>在线编辑:<br><code>Github</code>有提供一个在线编辑的页面，在Repo页面按下按键<code>.</code>就可以打开编辑页面了</p>
+</blockquote>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://files.mdnice.com/user/34064/8818f33d-14ce-4d4d-ae58-079f5e90b023.png"></p>
+<p>每个 <code>action</code> 就是一个独立脚本，因此可以做成代码仓库，使用<code>userName/repoName</code>的语法引用 <code>action</code>。比如，<code>actions/setup-node</code>就表示<a target="_blank" rel="noopener" href="https://github.com/actions/setup-node"><code>github.com/actions/setup-node</code></a>这个仓库，它代表一个 <code>action</code>，作用是安装 Node.js。事实上，GitHub 官方的 actions 都放在 <a target="_blank" rel="noopener" href="https://github.com/actions"><code>github.com/actions</code></a> 里面。</p>
+<h2 id="6-1、支持的令牌"><a href="#6-1、支持的令牌" class="headerlink" title="6.1、支持的令牌"></a>6.1、支持的令牌</h2><p>支持三个令牌。</p>
+<table>
+<thead>
+<tr>
+<th>令牌</th>
+<th>私人仓库</th>
+<th>公开仓库</th>
+<th>协议</th>
+<th>设置</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>github_token</td>
+<td>✅️</td>
+<td>✅️</td>
+<td>HTTPS</td>
+<td>不必要</td>
+</tr>
+<tr>
+<td>deploy_key</td>
+<td>✅️</td>
+<td>✅️</td>
+<td>SSH</td>
+<td>必要的</td>
+</tr>
+<tr>
+<td>personal_token</td>
+<td>✅️</td>
+<td>✅️</td>
+<td>HTTPS</td>
+<td>必要的</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>注意：<code>GITHUB_TOKEN</code>不是个人访问令牌，<code>GitHub Actions</code> 运行器会自动创建一个<code>GITHUB_TOKEN</code>密钥以在您的工作流程中进行身份验证。因此，您无需任何配置即可立即开始部署</p>
+</blockquote>
+<h2 id="6-2、支持的平台"><a href="#6-2、支持的平台" class="headerlink" title="6.2、支持的平台"></a>6.2、支持的平台</h2><p>所有 <code>Actions</code> 运行器：支持 Linux (Ubuntu)、macOS 和 Windows。</p>
+<table>
+<thead>
+<tr>
+<th>环境</th>
+<th>github_token</th>
+<th>deploy_key</th>
+<th>personal_token</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ubuntu-20.04</td>
+<td>✅️</td>
+<td>✅️</td>
+<td>✅️</td>
+</tr>
+<tr>
+<td>ubuntu-18.04</td>
+<td>✅️</td>
+<td>✅️</td>
+<td>✅️</td>
+</tr>
+<tr>
+<td>macos-最新</td>
+<td>✅️</td>
+<td>✅️</td>
+<td>✅️</td>
+</tr>
+<tr>
+<td>windows-最新</td>
+<td>✅️</td>
+<td>(2)</td>
+<td>✅️</td>
+</tr>
+</tbody></table>
+<h1 id="7、为Hexo配置GitHub-Actions"><a href="#7、为Hexo配置GitHub-Actions" class="headerlink" title="7、为Hexo配置GitHub Actions"></a>7、为Hexo配置GitHub Actions</h1><p>具体步骤：</p>
+<h2 id="7-1、设置-SSH-私钥-deploy-key"><a href="#7-1、设置-SSH-私钥-deploy-key" class="headerlink" title="7.1、设置 SSH 私钥 deploy_key"></a>7.1、设置 SSH 私钥 <code>deploy_key</code></h2><p>创建 SSH 部署密钥，使用以下命令生成部署密钥。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t rsa -b 4096 -C <span class="string">&quot;<span class="subst">$(git config user.email)</span>&quot;</span> -f gh-pages -N <span class="string">&quot;&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>您将获得 2 个文件：</p>
+<ul>
+<li><p>gh-pages.pub是公钥</p>
+</li>
+<li><p>gh-pages是私钥</p>
+</li>
+</ul>
+<p>接下来，转到博客源码存储库设置</p>
+<ul>
+<li>转到<code>Deploy Keys</code>并使用<code>Allow write access</code>添加您的公钥 <code>gh-pages.pub</code>，name写为<code>public key of ACTIONS_DEPLOY_KEY</code>，指定用途，方便后面维护</li>
+</ul>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://files.mdnice.com/user/34064/16070f38-5c57-482d-a1bc-5d2fa3318221.png"></p>
+<ul>
+<li>转到<code>Actions secrets</code>并将您的私钥 <code>gh-pages</code> 添加为 <code>ACTIONS_DEPLOY_KEY</code>（这个名称在yml文件中需要使用）</li>
+</ul>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://files.mdnice.com/user/34064/e2f6afbc-71e8-4fc2-bcdd-181d2dd96a6c.png"></p>
+<h2 id="7-2、新建-github-x2F-workflows-x2F-pages-yml-文件"><a href="#7-2、新建-github-x2F-workflows-x2F-pages-yml-文件" class="headerlink" title="7.2、新建 .github&#x2F;workflows&#x2F;pages.yml 文件"></a>7.2、新建 .github&#x2F;workflows&#x2F;pages.yml 文件</h2><p><code>yml</code>文件通过缩进（空格，不是tab）来表示层级关系。</p>
+<p><code>yaml</code>不会的，可以去看一下<a target="_blank" rel="noopener" href="https://www.runoob.com/w3cnote/yaml-intro.html">这里</a>，了解一下语法即可。</p>
+<p>以下文件是我个人的配置的一部分，不建议直接使用</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">name:</span> <span class="string">Pages</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 触发器、分支</span></span><br><span class="line"><span class="attr">on:</span></span><br><span class="line">  <span class="attr">push:</span></span><br><span class="line">    <span class="attr">branches:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">master</span>  <span class="comment"># default branch</span></span><br><span class="line"><span class="attr">jobs:</span></span><br><span class="line">  <span class="comment"># 子任务</span></span><br><span class="line">  <span class="attr">pages:</span></span><br><span class="line">    <span class="attr">runs-on:</span> <span class="string">ubuntu-latest</span> <span class="comment"># 定运行所需要的虚拟机环境</span></span><br><span class="line">    <span class="attr">permissions:</span></span><br><span class="line">      <span class="attr">contents:</span> <span class="string">write</span></span><br><span class="line">    <span class="attr">steps:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">uses:</span> <span class="string">actions/checkout@v2</span></span><br><span class="line">        <span class="comment"># with:</span></span><br><span class="line">        <span class="comment">#   submodules: true</span></span><br><span class="line">        <span class="comment">#   fetch-depth: 0</span></span><br><span class="line">      <span class="comment"># 每个name表示一个步骤:step</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Use</span> <span class="string">Node.js</span> <span class="number">16.</span><span class="string">x</span></span><br><span class="line">        <span class="attr">uses:</span> <span class="string">actions/setup-node@v2</span></span><br><span class="line">        <span class="attr">with:</span></span><br><span class="line">          <span class="attr">node-version:</span> <span class="string">&#x27;16.14.1&#x27;</span> <span class="comment"># 自己正在使用的node版本即可</span></span><br><span class="line">      <span class="comment"># - run: node -v # 查看node版本号</span></span><br><span class="line">      <span class="comment"># 缓存依赖项: https://docs.github.com/cn/actions/using-workflows/caching-dependencies-to-speed-up-workflows</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Cache</span> <span class="string">NPM</span> <span class="string">dependencies</span></span><br><span class="line">        <span class="attr">uses:</span> <span class="string">actions/cache@v2</span></span><br><span class="line">        <span class="attr">with:</span></span><br><span class="line">          <span class="comment"># npm cache files are stored in `~/.npm` on Linux/macOS</span></span><br><span class="line">          <span class="attr">path:</span> <span class="string">~/.npm</span></span><br><span class="line">          <span class="comment"># path: node_modules</span></span><br><span class="line">          <span class="attr">key:</span> <span class="string">$&#123;&#123;</span> <span class="string">runner.OS</span> <span class="string">&#125;&#125;-npm-cache</span></span><br><span class="line">          <span class="attr">restore-keys:</span> <span class="string">|</span></span><br><span class="line"><span class="string">            $&#123;&#123; runner.OS &#125;&#125;-npm-cache</span></span><br><span class="line"><span class="string"></span>      <span class="comment"># 查看路径 : /home/runner/work/blog/blog</span></span><br><span class="line">      <span class="comment"># - name: Look Path</span></span><br><span class="line">      <span class="comment">#   run: pwd</span></span><br><span class="line">      <span class="comment"># 查看文件</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Look</span> <span class="string">Dir</span> <span class="string">List</span></span><br><span class="line">        <span class="attr">run:</span> <span class="string">tree</span> <span class="string">-L</span> <span class="number">3</span> <span class="string">-a</span></span><br><span class="line">      <span class="comment"># 第一次或者依赖发生变化的时候执行 Install Dependencies，其它构建的时候不需要这一步</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Install</span> <span class="string">Dependencies</span></span><br><span class="line">        <span class="attr">run:</span> <span class="string">npm</span> <span class="string">install</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Look</span> <span class="string">Dir</span> <span class="string">List</span></span><br><span class="line">        <span class="attr">run:</span> <span class="string">tree</span> <span class="string">-L</span> <span class="number">3</span> <span class="string">-a</span></span><br><span class="line">      <span class="comment"># - name: clean theme cache</span></span><br><span class="line">      <span class="comment">#   run: git rm -f --cached themes/tenacity</span></span><br><span class="line">        <span class="comment"># run: git submodule deinit themes/tenacity &amp;&amp; git rm themes/tenacity</span></span><br><span class="line">      <span class="comment"># 安装主题</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Install</span> <span class="string">Theme</span></span><br><span class="line">        <span class="attr">run:</span> <span class="string">git</span> <span class="string">submodule</span> <span class="string">add</span> <span class="string">https://github.com/all-smile/tenacity.git</span> <span class="string">themes/tenacity</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Clean</span></span><br><span class="line">        <span class="attr">run:</span> <span class="string">npm</span> <span class="string">run</span> <span class="string">clean</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Build</span></span><br><span class="line">        <span class="attr">run:</span> <span class="string">npm</span> <span class="string">run</span> <span class="string">build</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Deploy</span></span><br><span class="line">        <span class="attr">uses:</span> <span class="string">peaceiris/actions-gh-pages@v3</span></span><br><span class="line">        <span class="attr">with:</span></span><br><span class="line">          <span class="attr">deploy_key:</span> <span class="string">$&#123;&#123;</span> <span class="string">secrets.ACTIONS_DEPLOY_KEY</span>  <span class="string">&#125;&#125;</span></span><br><span class="line">          <span class="attr">user_name:</span> <span class="string">xiao</span></span><br><span class="line">          <span class="attr">user_email:</span> <span class="string">allblue95@126.com</span></span><br><span class="line">          <span class="comment"># 获取提交文章源码时的commit message，作为发布gh-pages分支的信息</span></span><br><span class="line">          <span class="attr">commit_message:</span> <span class="string">$&#123;&#123;</span> <span class="string">github.event.head_commit.message</span> <span class="string">&#125;&#125;</span></span><br><span class="line">          <span class="attr">full_commit_message:</span> <span class="string">$&#123;&#123;</span> <span class="string">github.event.head_commit.message</span> <span class="string">&#125;&#125;</span></span><br><span class="line">          <span class="attr">github_token:</span> <span class="string">$&#123;&#123;</span> <span class="string">secrets.GITHUB_TOKEN</span> <span class="string">&#125;&#125;</span></span><br><span class="line">          <span class="comment"># GITHUB_TOKEN不是个人访问令牌，GitHub Actions 运行器会自动创建一个GITHUB_TOKEN密钥以在您的工作流程中进行身份验证。因此，您无需任何配置即可立即开始部​​署</span></span><br><span class="line">          <span class="attr">publish_dir:</span> <span class="string">./public</span></span><br><span class="line">          <span class="attr">allow_empty_commit:</span> <span class="literal">true</span> <span class="comment"># 允许空提交</span></span><br><span class="line">      <span class="comment"># Use the output from the `deploy` step(use for test action)</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Get</span> <span class="string">the</span> <span class="string">output</span></span><br><span class="line">        <span class="attr">run:</span> <span class="string">|</span></span><br><span class="line">          <span class="string">echo</span> <span class="string">&quot;$<span class="template-variable">&#123;&#123; steps.deploy.outputs.notify &#125;&#125;</span>&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="7-3、修改-config-yml-文件中的Deploy配置"><a href="#7-3、修改-config-yml-文件中的Deploy配置" class="headerlink" title="7.3、修改 _config.yml 文件中的Deploy配置"></a>7.3、修改 <code>_config.yml</code> 文件中的<code>Deploy</code>配置</h2><figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Deployment</span></span><br><span class="line"><span class="comment">## Docs: https://hexo.io/docs/one-command-deployment</span></span><br><span class="line"><span class="attr">deploy:</span></span><br><span class="line">  <span class="attr">type:</span> <span class="string">&#x27;git&#x27;</span></span><br><span class="line">  <span class="attr">repo:</span> <span class="string">git@github.com:all-smile/blog.git</span></span><br><span class="line">  <span class="attr">branch:</span> <span class="string">gh-pages</span></span><br><span class="line">  <span class="comment"># 默认提交信息： Site updated: &#123;&#123; now(&#x27;YYYY-MM-DD HH:mm:ss&#x27;) &#125;&#125;</span></span><br><span class="line">  <span class="attr">message:</span> <span class="string">$&#123;&#123;</span> <span class="string">github.event.head_commit.message</span> <span class="string">&#125;&#125;</span> <span class="comment"># 直接将提交消息传输到 GitHub Pages 存储库</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="发布效果"><a href="#发布效果" class="headerlink" title="发布效果"></a>发布效果</h2><p>本地仓库直接<code>push</code>，触发 <code>GitHub Actions</code> 自动构建发布</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://files.mdnice.com/user/34064/3428f5ca-7730-4128-9c51-1fce5c063e99.png"></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://files.mdnice.com/user/34064/13a98b38-a16c-4997-8a33-f825bb86fb07.png"></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://files.mdnice.com/user/34064/9952cb44-cc50-467c-a6b4-36cab774f436.png"></p>
+<h2 id="Hexo主题"><a href="#Hexo主题" class="headerlink" title="Hexo主题"></a>Hexo主题</h2><p>请查看<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/docs/themes.html">文档</a> ，自行安装配置</p>
+<h1 id="8、GitHub-Actions问题解决"><a href="#8、GitHub-Actions问题解决" class="headerlink" title="8、GitHub Actions问题解决"></a>8、GitHub Actions问题解决</h1><h2 id="8-1、非法输入值"><a href="#8-1、非法输入值" class="headerlink" title="8.1、非法输入值"></a>8.1、非法输入值</h2><p>在 <code>pages.yml</code> 文件的 <code>Deploy</code> 步骤下，发布的时候需要一些参数配置，这些参数名是指定好的，不可以随便写，比如 <code>commit_msg</code>应该使用 <code>commit_message</code></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://files.mdnice.com/user/34064/81d50c5b-188b-4925-b1f8-0da53d697b65.jpg"></p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">commit_message:</span> <span class="string">$&#123;&#123;</span> <span class="string">github.event.head_commit.message</span> <span class="string">&#125;&#125;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Warning: Unexpected input(s) ‘commit_msg’, valid inputs are [‘deploy_key’, ‘github_token’, ‘personal_token’, ‘publish_branch’, ‘publish_dir’, ‘destination_dir’, ‘external_repository’, ‘allow_empty_commit’, ‘keep_files’, ‘force_orphan’, ‘user_name’, ‘user_email’, ‘commit_message’, ‘full_commit_message’, ‘tag_name’, ‘tag_message’, ‘enable_jekyll’, ‘disable_nojekyll’, ‘cname’, ‘exclude_assets’]</p>
+</blockquote>
+<h2 id="8-2、The-process-‘-x2F-usr-x2F-bin-x2F-git’-failed-with-exit-code-128"><a href="#8-2、The-process-‘-x2F-usr-x2F-bin-x2F-git’-failed-with-exit-code-128" class="headerlink" title="8.2、The process ‘&#x2F;usr&#x2F;bin&#x2F;git’ failed with exit code 128"></a>8.2、The process ‘&#x2F;usr&#x2F;bin&#x2F;git’ failed with exit code 128</h2><p>这个问题大概率是 <code>GITHUB_TOKEN</code> 造成的，参考<a target="_blank" rel="noopener" href="https://docs.github.com/en/actions/security-guides/automatic-token-authentication">配置文档</a></p>
+<p><code>GITHUB_TOKEN</code> 是一种 <code>GitHub</code> 应用程序安装访问令牌。 可以使用安装访问令牌代表仓库中安装的 <code>GitHub</code> 应用程序进行身份验证。令牌的权限仅限于包含您的工作流程的仓库。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://files.mdnice.com/user/34064/909ecbe7-ad36-4d09-a511-6236bdc317c5.png"></p>
+<p>解决：</p>
+<ul>
+<li>查看 <code>yml</code> 文件中的名字是否写错</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">github_token: $&#123;&#123; secrets.GITHUB_TOKEN &#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>在 仓库 <code>Settings/Actions/general</code> 下，修改 <code>GITHUB_TOKEN</code> 的权限</li>
+</ul>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://files.mdnice.com/user/34064/99653c2c-38e5-4a03-a190-1dad2586c372.png"></p>
+<h2 id="8-3、deploy-key问题"><a href="#8-3、deploy-key问题" class="headerlink" title="8.3、deploy key问题"></a>8.3、deploy key问题</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ERROR: Permission to all-smile/blog.git denied to deploy key</span><br><span class="line">fatal: Could not read from remote repository.</span><br><span class="line"></span><br><span class="line">Please make sure you have the correct access rights</span><br><span class="line">and the repository exists.</span><br></pre></td></tr></table></figure>
+
+<p>解决：</p>
+<ul>
+<li><p>查看 <code>pages.yml</code> 中引用的变量名称是否跟 GitHub 仓库上设置的一样</p>
+</li>
+<li><p>公私钥是否匹配，如果不匹配，则重新生成添加即可</p>
+</li>
+</ul>
+<p>👉👉 如果还有其它问题也可以看一下<a target="_blank" rel="noopener" href="https://github.com/peaceiris/actions-gh-pages#readme">这里</a>，应该会有帮助的😊</p>
+<hr>
+<p>🎈🎈🎈</p>
+<p>🌹 持续更文，关注我，你会发现一个踏实努力的宝藏前端😊，让我们一起学习，共同成长吧。</p>
+<p>🎉 喜欢的小伙伴记得点赞关注收藏哟，回看不迷路 😉</p>
+<p>🎁 欢迎大家评论交流, 蟹蟹😊</p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>许可协议</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/blog/2022/08/19/Linux%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AD%A6%E4%B9%A0%EF%BC%88%E8%BF%90%E7%BB%B4%E5%BF%85%E4%BC%9A%EF%BC%89/">Linux操作系统学习（运维必会）<span class="note">较早</span></a><div class="line"></div></section></div>
+
+
+<div class="related-wrap reveal" id="related-posts"></div>
+
+
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>本站由 <a href="https://all-smile.github.io/blog/blog/">@Xiao Juntao</a> 创建，使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.8.0" title="v1.8.0">Stellar</a> 作为主题。</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.8.0';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://fastly.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/blog/js/plugins/sites.js',
+    friendsjs: '/blog/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://fastly.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://fastly.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://fastly.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://fastly.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.fancybox = Object.assign({"enable":true,"js":"https://fastly.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.js","css":"https://fastly.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.css","selector":".swiper-slide img"});
+  }
+  if ('false' == 'true') {
+    stellar.plugins.heti = Object.assign({"enable":false,"css":"https://unpkg.com/heti/umd/heti.min.css","js":"https://unpkg.com/heti/umd/heti-addon.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/blog/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>
