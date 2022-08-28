@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.2.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://fastly.jsdelivr.net'>
+  <link rel="preconnect" href="https://fastly.jsdelivr.net" crossorigin>
+  <link rel='dns-prefetch' href='//unpkg.com'>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>Docker0网络及原理探究 - 甜点cc</title>
+
+  
+    <meta name="description" content="Docker网络通信在容器编排、集群部署中具有举足轻重的地位，（玩docker不懂docker0那就......玩不透哇👀）本篇分析Docker网络，并通过启动几个容器来探究Docker网络及容器通信，帮助读者理解一下😊。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Docker0网络及原理探究">
+<meta property="og:url" content="https://all-smile.github.io/blog/2022/08/28/Docker0%E7%BD%91%E7%BB%9C%E5%8F%8A%E5%8E%9F%E7%90%86%E6%8E%A2%E7%A9%B6/index.html">
+<meta property="og:site_name" content="甜点cc">
+<meta property="og:description" content="Docker网络通信在容器编排、集群部署中具有举足轻重的地位，（玩docker不懂docker0那就......玩不透哇👀）本篇分析Docker网络，并通过启动几个容器来探究Docker网络及容器通信，帮助读者理解一下😊。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://files.mdnice.com/user/34064/322be90a-063f-429b-9241-0293a832757f.png">
+<meta property="og:image" content="https://files.mdnice.com/user/34064/08caee17-aad2-473f-bd89-adafd9a08caf.png">
+<meta property="og:image" content="https://files.mdnice.com/user/34064/05840b3b-e40f-4b39-9a78-78c43838f9dc.png">
+<meta property="og:image" content="https://files.mdnice.com/user/34064/348baac0-815d-4df3-b9b8-fe9dd07c8bfb.png">
+<meta property="article:published_time" content="2022-08-28T14:06:10.000Z">
+<meta property="article:modified_time" content="2022-08-28T14:08:44.083Z">
+<meta property="article:author" content="Xiao Juntao">
+<meta property="article:tag" content="Docker">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://files.mdnice.com/user/34064/322be90a-063f-429b-9241-0293a832757f.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/blog/css/main.css">
+
+  
+
+  
+
+  
+
+  
+
+
+  
+</head>
+
+<body>
+  
+
+
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/blog/about/"><div class="bg" style="opacity:0;background-image:url(https://fastly.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="https://raw.githubusercontent.com/all-smile/nav/master/static/images/cattle.jpg" onerror="javascript:this.classList.add('error');this.src='https://fastly.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/blog/"><div class="main">甜点cc</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/blog/">文章</a><a class="nav-item" href="/blog/wiki/">项目</a><a class="nav-item" href="/blog/notes/">笔记</a><a class="nav-item" href="/blog/more/">更多</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1%E3%80%81Docker0"><span class="toc-text">1、Docker0</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2%E3%80%81%E6%B8%85%E7%A9%BA%E6%89%80%E6%9C%89%E9%95%9C%E5%83%8F"><span class="toc-text">2、清空所有镜像</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3%E3%80%81%E6%9F%A5%E7%9C%8B%E7%BD%91%E5%8D%A1%E4%BF%A1%E6%81%AF"><span class="toc-text">3、查看网卡信息</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4%E3%80%81%E8%BF%90%E8%A1%8C%E5%AE%B9%E5%99%A8%E4%B9%8B%E5%90%8E%EF%BC%8C%E5%86%8D%E6%AC%A1%E6%9F%A5%E7%9C%8B%E7%BD%91%E5%8D%A1%E4%BF%A1%E6%81%AF"><span class="toc-text">4、运行容器之后，再次查看网卡信息</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1%E3%80%81%E8%BF%90%E8%A1%8Cmysql01-centos01-centos02%E5%AE%B9%E5%99%A8"><span class="toc-text">4.1、运行mysql01, centos01, centos02容器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2%E3%80%81%E6%9F%A5%E7%9C%8Bip%E3%80%81mac%E5%9C%B0%E5%9D%80%E4%BF%A1%E6%81%AF"><span class="toc-text">4.2、查看ip、mac地址信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3%E3%80%81%E6%9F%A5%E7%9C%8Bdocker%E7%BD%91%E7%BB%9C"><span class="toc-text">4.3、查看docker网络</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4%E3%80%81%E6%9F%A5%E7%9C%8B%E9%BB%98%E8%AE%A4bridge%E7%BD%91%E6%A1%A5-docker0"><span class="toc-text">4.4、查看默认bridge网桥(docker0)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5%E3%80%81%E6%B5%8B%E8%AF%95%E5%AE%B9%E5%99%A8%E9%80%9A%E4%BF%A1"><span class="toc-text">4.5、测试容器通信</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5%E3%80%81%E5%AE%B9%E5%99%A8%E9%80%9A%E4%BF%A1%E5%8E%9F%E7%90%86"><span class="toc-text">5、容器通信原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1%E3%80%81%E7%BB%93%E8%AE%BA"><span class="toc-text">5.1、结论</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%80%E5%90%8E"><span class="toc-text">最后</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/blog/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/blog/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/blog/categories/%E5%90%8E%E7%AB%AF%E8%BF%90%E7%BB%B4/">后端运维</a></div><div id="post-meta">发布于&nbsp;<time datetime="2022-08-28T14:06:10.000Z">2022-08-28</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>Docker0网络及原理探究</span></h1>
+<blockquote>
+<p>个人观点：Docker网络通信在容器编排、集群部署中具有举足轻重的地位，（玩docker不懂docker0那就……玩不透哇👀）本篇分析Docker网络，并通过启动几个容器来探究Docker网络及容器通信，帮助读者理解一下😊。</p>
+</blockquote>
+<h2 id="1、Docker0"><a href="#1、Docker0" class="headerlink" title="1、Docker0"></a>1、Docker0</h2><p>Docker 服务默认会创建一个 docker0 网桥（其上有一个 docker0 内部接口），它在内核层连通了其他的物理或虚拟网卡，这就将所有容器和本地主机都放到同一个物理网络。</p>
+<p>Docker 默认指定了 docker0 接口 的 IP 地址和子网掩码，让主机和容器之间可以通过网桥相互通信，它还给出了 MTU（接口允许接收的最大传输单元），通常是 1500 Bytes，或宿主主机网络路由上支持的默认值。这些值都可以在服务启动的时候进行配置。</p>
+<h2 id="2、清空所有镜像"><a href="#2、清空所有镜像" class="headerlink" title="2、清空所有镜像"></a>2、清空所有镜像</h2><p>如果是初学者，还不是很了解docker0的情况下，建议清空所有镜像，创造一个比较干净的容器网络环境，更加清晰，有助于学习docker0😃</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 查看运行的容器</span></span><br><span class="line">docker ps</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 停掉所有正在运行的容器(否则删除不掉)</span></span><br><span class="line">docker stop [containerID]   <span class="comment"># docker stop $(docker container ls -q)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 执行删除</span></span><br><span class="line">docker rmi -f $(docker images -aq)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 查看镜像</span></span><br><span class="line">docker images</span><br></pre></td></tr></table></figure>
+
+<h2 id="3、查看网卡信息"><a href="#3、查看网卡信息" class="headerlink" title="3、查看网卡信息"></a>3、查看网卡信息</h2><ol>
+<li>先了解一下<code>ip addr</code>命令</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ip addr</span><br><span class="line"></span><br><span class="line">lo        <span class="comment"># 本机回环地址 127.0.0.1</span></span><br><span class="line">eth0      <span class="comment"># 阿里云内网地址 172.31.81.32</span></span><br><span class="line">docker0   <span class="comment"># docker生成的网卡 172.17.0.1</span></span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>获取当前网卡ip地址和mac地址</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">[root@--- ~]<span class="comment"># ip addr</span></span><br><span class="line">1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000</span><br><span class="line">    <span class="built_in">link</span>/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line">    inet 127.0.0.1/8 scope host lo</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc pfifo_fast state UP group default qlen 1000</span><br><span class="line">    <span class="built_in">link</span>/ether 00:16:3e:0a:00:34 brd ff:ff:ff:ff:ff:ff</span><br><span class="line">    inet 172.31.81.32/20 brd 172.31.95.255 scope global dynamic eth0</span><br><span class="line">       valid_lft 291944112sec preferred_lft 291944112sec</span><br><span class="line">3: docker0: &lt;NO-CARRIER,BROADCAST,MULTICAST,UP&gt; mtu 1500 qdisc noqueue state DOWN group default</span><br><span class="line">    <span class="built_in">link</span>/ether 02:42:a4:2f:c5:62 brd ff:ff:ff:ff:ff:ff</span><br><span class="line">    inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">[root@--- ~]<span class="comment">#</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>下面通过docker启动几个容器来探究一下Docker网络👇</p>
+</blockquote>
+<h2 id="4、运行容器之后，再次查看网卡信息"><a href="#4、运行容器之后，再次查看网卡信息" class="headerlink" title="4、运行容器之后，再次查看网卡信息"></a>4、运行容器之后，再次查看网卡信息</h2><p>安装Docker时，它会<strong>自动创建</strong>三个网络，默认<code>bridge</code>网桥（创建容器默认连接到此网络）、 <code>none</code> 、<code>host</code></p>
+<h3 id="4-1、运行mysql01-centos01-centos02容器"><a href="#4-1、运行mysql01-centos01-centos02容器" class="headerlink" title="4.1、运行mysql01, centos01, centos02容器"></a>4.1、运行<code>mysql01</code>, <code>centos01</code>, <code>centos02</code>容器</h3><ul>
+<li>启动时，docker默认的bridge网桥，docker0给容器服务自动分配ip</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">docker run -it --name mysql01 -e MYSQL_ROOT_PASSWORD=123 mysql:5.7</span><br><span class="line">docker run -it --name centos01  centos /bin/bash</span><br><span class="line">docker run -it --name centos02  centos /bin/bash</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-2、查看ip、mac地址信息"><a href="#4-2、查看ip、mac地址信息" class="headerlink" title="4.2、查看ip、mac地址信息"></a>4.2、查看ip、mac地址信息</h3><ul>
+<li>可以看到上面启动的三个容器服务的<code>mac</code>信息</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">$ ip addr</span><br><span class="line">1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000</span><br><span class="line">    <span class="built_in">link</span>/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line">    inet 127.0.0.1/8 scope host lo</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc pfifo_fast state UP group default qlen 1000</span><br><span class="line">    <span class="built_in">link</span>/ether 00:16:3e:0a:00:34 brd ff:ff:ff:ff:ff:ff</span><br><span class="line">    inet 172.31.81.32/20 brd 172.31.95.255 scope global dynamic eth0</span><br><span class="line">       valid_lft 291916543sec preferred_lft 291916543sec</span><br><span class="line">3: docker0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP group default</span><br><span class="line">    <span class="built_in">link</span>/ether 02:42:a4:2f:c5:62 brd ff:ff:ff:ff:ff:ff</span><br><span class="line">    inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">140: br-799426d70aa2: &lt;NO-CARRIER,BROADCAST,MULTICAST,UP&gt; mtu 1500 qdisc noqueue state DOWN group default</span><br><span class="line">    <span class="built_in">link</span>/ether 02:42:7f:01:1d:00 brd ff:ff:ff:ff:ff:ff</span><br><span class="line">    inet 172.18.0.1/16 brd 172.18.255.255 scope global br-799426d70aa2</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">154: vethe3da564@if153: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue master docker0 state UP group default</span><br><span class="line">    <span class="built_in">link</span>/ether ea:84:fb:14:47:99 brd ff:ff:ff:ff:ff:ff link-netnsid 0</span><br><span class="line">156: veth6477da5@if155: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue master docker0 state UP group default</span><br><span class="line">    <span class="built_in">link</span>/ether 86:35:30:8d:14:85 brd ff:ff:ff:ff:ff:ff link-netnsid 1</span><br><span class="line">158: veth17b2712@if157: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue master docker0 state UP group default</span><br><span class="line">    <span class="built_in">link</span>/ether 72:76:f0:3c:17:e8 brd ff:ff:ff:ff:ff:ff link-netnsid 2</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-3、查看docker网络"><a href="#4-3、查看docker网络" class="headerlink" title="4.3、查看docker网络"></a>4.3、查看docker网络</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@--- ~]<span class="comment"># docker network ls</span></span><br><span class="line">NETWORK ID     NAME      DRIVER    SCOPE</span><br><span class="line">feafa30d4051   bridge    bridge    <span class="built_in">local</span></span><br><span class="line">e8bf4fced9e2   host      host      <span class="built_in">local</span></span><br><span class="line">6263db0933b9   none      null      <span class="built_in">local</span></span><br><span class="line">[root@--- ~]<span class="comment">#</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-4、查看默认bridge网桥-docker0"><a href="#4-4、查看默认bridge网桥-docker0" class="headerlink" title="4.4、查看默认bridge网桥(docker0)"></a>4.4、查看默认bridge网桥(docker0)</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line">[root@--- ~]<span class="comment"># docker network inspect feafa30d4051</span></span><br><span class="line">[</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="string">&quot;Name&quot;</span>: <span class="string">&quot;bridge&quot;</span>,</span><br><span class="line">        <span class="string">&quot;Id&quot;</span>: <span class="string">&quot;feafa30d4051f24353508959bd420fd163ad0c98d6b30ec8ff13b59a59552bb1&quot;</span>,</span><br><span class="line">        <span class="string">&quot;Created&quot;</span>: <span class="string">&quot;2021-09-26T15:10:27.167774553+08:00&quot;</span>,</span><br><span class="line">        <span class="string">&quot;Scope&quot;</span>: <span class="string">&quot;local&quot;</span>,</span><br><span class="line">        <span class="string">&quot;Driver&quot;</span>: <span class="string">&quot;bridge&quot;</span>,</span><br><span class="line">        <span class="string">&quot;EnableIPv6&quot;</span>: <span class="literal">false</span>,</span><br><span class="line">        <span class="string">&quot;IPAM&quot;</span>: &#123;</span><br><span class="line">            <span class="string">&quot;Driver&quot;</span>: <span class="string">&quot;default&quot;</span>,</span><br><span class="line">            <span class="string">&quot;Options&quot;</span>: null,</span><br><span class="line">            <span class="string">&quot;Config&quot;</span>: [</span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="string">&quot;Subnet&quot;</span>: <span class="string">&quot;172.17.0.0/16&quot;</span>,</span><br><span class="line">                    <span class="string">&quot;Gateway&quot;</span>: <span class="string">&quot;172.17.0.1&quot;</span></span><br><span class="line">                &#125;</span><br><span class="line">            ]</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="string">&quot;Internal&quot;</span>: <span class="literal">false</span>,</span><br><span class="line">        <span class="string">&quot;Attachable&quot;</span>: <span class="literal">false</span>,</span><br><span class="line">        <span class="string">&quot;Ingress&quot;</span>: <span class="literal">false</span>,</span><br><span class="line">        <span class="string">&quot;ConfigFrom&quot;</span>: &#123;</span><br><span class="line">            <span class="string">&quot;Network&quot;</span>: <span class="string">&quot;&quot;</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="string">&quot;ConfigOnly&quot;</span>: <span class="literal">false</span>,</span><br><span class="line">        <span class="string">&quot;Containers&quot;</span>: &#123;</span><br><span class="line">            <span class="string">&quot;29298987c51b777b546bf6626560020ce235e390e1d7fcfe188c6db228ca4edf&quot;</span>: &#123;</span><br><span class="line">                <span class="string">&quot;Name&quot;</span>: <span class="string">&quot;mysql01&quot;</span>,</span><br><span class="line">                <span class="string">&quot;EndpointID&quot;</span>: <span class="string">&quot;f6572c49234f74a6c0b652a379bb386f843ebd23b02abd59b1f6a9d1c9534b17&quot;</span>,</span><br><span class="line">                <span class="string">&quot;MacAddress&quot;</span>: <span class="string">&quot;02:42:ac:11:00:02&quot;</span>,</span><br><span class="line">                <span class="string">&quot;IPv4Address&quot;</span>: <span class="string">&quot;172.17.0.2/16&quot;</span>,    <span class="comment"># ✨容器的IP✨</span></span><br><span class="line">                <span class="string">&quot;IPv6Address&quot;</span>: <span class="string">&quot;&quot;</span></span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="string">&quot;cb1922b95b9316d129b54f3545fad9729092926e10a1d5517f8928db42706151&quot;</span>: &#123;</span><br><span class="line">                <span class="string">&quot;Name&quot;</span>: <span class="string">&quot;centos01&quot;</span>,</span><br><span class="line">                <span class="string">&quot;EndpointID&quot;</span>: <span class="string">&quot;ef6cfa74f56bfa4f49143aa08cf323812002236bc63f75204dee7c3ec1162250&quot;</span>,</span><br><span class="line">                <span class="string">&quot;MacAddress&quot;</span>: <span class="string">&quot;02:42:ac:11:00:03&quot;</span>,</span><br><span class="line">                <span class="string">&quot;IPv4Address&quot;</span>: <span class="string">&quot;172.17.0.3/16&quot;</span>,    <span class="comment"># ✨容器的IP✨</span></span><br><span class="line">                <span class="string">&quot;IPv6Address&quot;</span>: <span class="string">&quot;&quot;</span></span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="string">&quot;cc6f510b9765ba018dbafd416c9774ddf5fd3ff55fa992827f55516e8dc70b6a&quot;</span>: &#123;</span><br><span class="line">                <span class="string">&quot;Name&quot;</span>: <span class="string">&quot;centos02&quot;</span>,</span><br><span class="line">                <span class="string">&quot;EndpointID&quot;</span>: <span class="string">&quot;2f901aec8f8b455d1fb06112c9035a19f34cc597d8907f26f1b896f12d7eb7ba&quot;</span>,</span><br><span class="line">                <span class="string">&quot;MacAddress&quot;</span>: <span class="string">&quot;02:42:ac:11:00:04&quot;</span>,</span><br><span class="line">                <span class="string">&quot;IPv4Address&quot;</span>: <span class="string">&quot;172.17.0.4/16&quot;</span>,    <span class="comment"># ✨容器的IP✨</span></span><br><span class="line">                <span class="string">&quot;IPv6Address&quot;</span>: <span class="string">&quot;&quot;</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="string">&quot;Options&quot;</span>: &#123;</span><br><span class="line">            <span class="string">&quot;com.docker.network.bridge.default_bridge&quot;</span>: <span class="string">&quot;true&quot;</span>,</span><br><span class="line">            <span class="string">&quot;com.docker.network.bridge.enable_icc&quot;</span>: <span class="string">&quot;true&quot;</span>,</span><br><span class="line">            <span class="string">&quot;com.docker.network.bridge.enable_ip_masquerade&quot;</span>: <span class="string">&quot;true&quot;</span>,</span><br><span class="line">            <span class="string">&quot;com.docker.network.bridge.host_binding_ipv4&quot;</span>: <span class="string">&quot;0.0.0.0&quot;</span>,</span><br><span class="line">            <span class="string">&quot;com.docker.network.bridge.name&quot;</span>: <span class="string">&quot;docker0&quot;</span>,</span><br><span class="line">            <span class="string">&quot;com.docker.network.driver.mtu&quot;</span>: <span class="string">&quot;1500&quot;</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="string">&quot;Labels&quot;</span>: &#123;&#125;</span><br><span class="line">    &#125;</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-5、测试容器通信"><a href="#4-5、测试容器通信" class="headerlink" title="4.5、测试容器通信"></a>4.5、测试容器通信</h3><blockquote>
+<p>此时，进入<code>centos01</code>容器，<code>ping</code> mysql容器的<code>ip</code>可以ping通，但是ping不通容器名 ❗</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">docker <span class="built_in">exec</span> -it cb1922b95b93 /bin/bash</span><br><span class="line">ping 172.17.0.2</span><br><span class="line"></span><br><span class="line"><span class="comment"># docker0不支持容器名连接访问</span></span><br><span class="line">ping mysql01</span><br><span class="line">ping: mysql01: Name or service not known</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">docker run 启动镜像的时候docker都会分配一个网卡地址</span><br><span class="line"></span><br><span class="line"><span class="comment">#查看运行容器的ip</span></span><br><span class="line">docker inspect 容器ID | grep IPAddress</span><br></pre></td></tr></table></figure>
+
+<p>如下图👇</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://files.mdnice.com/user/34064/322be90a-063f-429b-9241-0293a832757f.png"></p>
+<h2 id="5、容器通信原理"><a href="#5、容器通信原理" class="headerlink" title="5、容器通信原理"></a>5、容器通信原理</h2><ul>
+<li><p>只要我们安装了docker，就会有一个网卡docker0（相当于一个路由器），每启动一个docker容器，docker都会给docker容器分配一个ip（连接路由器的终端，同一网段下终端可以互相通信），</p>
+</li>
+<li><p>通过<code>evth-pair</code>技术实现，<code>evth-pair</code>就是一对<em>虚拟设备接口</em>，他们都是成对出现的，一端连着协议，一端彼此相连，<code>evth-pair</code>充当一个桥梁，连接各种虚拟网络设备。</p>
+</li>
+<li><p>Docker网络使用的是<code>Linux桥接</code>，宿主机是docker容器的网桥，docker0，最多分配65535个</p>
+</li>
+<li><p>删除容器之后，虚拟网卡就自动消失了。（<strong>虚拟网卡传递效率高！</strong>）</p>
+</li>
+</ul>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://files.mdnice.com/user/34064/08caee17-aad2-473f-bd89-adafd9a08caf.png"></p>
+<p>启动容器不设置网络，容器ip由docker0自动分配情况下，容器间的通信，要经过<code>evth-pair</code>技术实现，<strong>并不是直连的</strong>。(跟计算机网络通信类似，分层模型，TCP&#x2F;IP协议数据报封装解封装)</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://files.mdnice.com/user/34064/05840b3b-e40f-4b39-9a78-78c43838f9dc.png"></p>
+<h3 id="5-1、结论"><a href="#5-1、结论" class="headerlink" title="5.1、结论"></a>5.1、结论</h3><ol>
+<li><p><code>tomcat01</code>,<code>tomcat02</code>是共用的一个路由器，docker0</p>
+</li>
+<li><p>所有的容器启动时，如果不指定网络的情况下，都是docker0路由的。65535</p>
+</li>
+</ol>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://files.mdnice.com/user/34064/348baac0-815d-4df3-b9b8-fe9dd07c8bfb.png"></p>
+<h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><p>上面<code>docker0</code>不支持容器名连接访问，容器通信只可以通过容器<code>ip</code>通信，docker也无法保证容器重启后的IP地址不变，所以更好的方式是<strong>通过别名进行互联</strong>，下篇继续讲解怎么通过别名进行容器通信，😊😊。</p>
+<hr>
+<p>🌹 持续更文，关注我，你会发现一个踏实努力的宝藏前端😊，让我们一起学习，共同成长吧。</p>
+<p>🎉 喜欢的小伙伴记得点赞关注收藏哟，回看不迷路 😉</p>
+<p>🎁 欢迎大家评论交流, 蟹蟹😊</p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>许可协议</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/blog/2022/08/27/%E5%A4%9A%E8%B7%AF%E7%94%B1%E5%A4%8D%E7%94%A8%E9%A1%B5%E9%9D%A2%E7%BB%84%E4%BB%B6%E9%97%AE%E9%A2%98/">多路由复用页面组件问题<span class="note">较早</span></a><div class="line"></div></section></div>
+
+
+<div class="related-wrap reveal" id="related-posts"></div>
+
+
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>本站由 <a href="https://all-smile.github.io/blog/blog/">@Xiao Juntao</a> 创建，使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.8.0" title="v1.8.0">Stellar</a> 作为主题。</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.8.0';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://fastly.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/blog/js/plugins/sites.js',
+    friendsjs: '/blog/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://fastly.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://fastly.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://fastly.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://fastly.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.fancybox = Object.assign({"enable":true,"js":"https://fastly.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.js","css":"https://fastly.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.css","selector":".swiper-slide img"});
+  }
+  if ('false' == 'true') {
+    stellar.plugins.heti = Object.assign({"enable":false,"css":"https://unpkg.com/heti/umd/heti.min.css","js":"https://unpkg.com/heti/umd/heti-addon.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/blog/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>
