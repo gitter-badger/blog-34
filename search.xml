@@ -1339,6 +1339,39 @@
       </tags>
   </entry>
   <entry>
+    <title>博客评论插件安装使用</title>
+    <url>/blog/posts/1511047663.html</url>
+    <content><![CDATA[<p><a href="https://github.com/apps/beaudar">Beaudar</a></p>
+<p>基于 GitHub issue 的轻量评论插件，Utterances 的中文版本</p>
+<h2 id="Beaudar-是如何工作的？"><a href="#Beaudar-是如何工作的？" class="headerlink" title="Beaudar 是如何工作的？"></a>Beaudar 是如何工作的？</h2><p>Beaudar 加载时，将使用 GitHub issue 搜索 API 根据 url，“路径名”或“标题”查找与页面相关的 issue。如果找不到与页面匹配的 issue，即没有评论，当有人首次发表评论时，Beaudar-bot 会自动创建一个 issue。</p>
+<h2 id="配置使用"><a href="#配置使用" class="headerlink" title="配置使用"></a>配置使用</h2><p>Beaudar 的配置方法很简单，创建一个仓库<a href="https://github.com/all-smile/blog-comments"><code>blog-comments</code></a>，在仓库中创建一个域名白名单文件<code>beaudar.json</code>，然后在<a href="https://github.com/apps/beaudar">此处</a>授权安装即可。</p>
+<p><code>beaudar.json</code>文件</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;origins&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    <span class="string">&quot;https://...&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;http://localhost:4000&quot;</span></span><br><span class="line">  <span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="效果展示"><a href="#效果展示" class="headerlink" title="效果展示"></a>效果展示</h2><p>使用<code>GitHub</code>登录后评论</p>
+<p><img src="https://pic.imgdb.cn/item/6315b40c16f2c2beb16136d9.jpg"></p>
+<h2 id="问题处理"><a href="#问题处理" class="headerlink" title="问题处理"></a>问题处理</h2><ol>
+<li><code>blog-comments</code> 仓库默认分支为<code>main</code></li>
+</ol>
+<p><img src="https://pic.imgdb.cn/item/6315b22716f2c2beb15ee173.jpg"></p>
+<p><strong>解决：</strong></p>
+<p>进入<code>blog-comments</code> 仓库，在 settings -&gt; branches 里面，修改 <code>Default branch</code> 为 <code>main</code></p>
+<ol start="2">
+<li><code>Hexo</code> 本地服务测试<code>Beaudar</code>，添加白名单配置</li>
+</ol>
+<p><img src="https://pic.imgdb.cn/item/6315b2a816f2c2beb15f64b2.jpg"></p>
+<p><strong>解决：</strong></p>
+<p>修改<code>beaudar.json</code>文件</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;origins&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    <span class="string">&quot;https://...&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;http://localhost:4000&quot;</span></span><br><span class="line">  <span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<p><img src="https://cdn.jsdelivr.net/gh/all-smile/nav@1.0.7/static/images/wind_girl.webp"></p>
+<p>我是 <a href="https://home.i-xiao.space/"><strong>甜点cc</strong></a></p>
+<p>热爱前端，也喜欢专研各种跟本职工作关系不大的技术，技术、产品兴趣广泛且浓厚，等待着一个创业机会。主要致力于分享实用技术干货，希望可以给一小部分人一些微小帮助。</p>
+<p>我排斥“新人迷茫，老人看戏”的现象，希望能和大家一起努力破局。营造一个良好的技术氛围，为了个人、为了我国的数字化转型、互联网物联网技术、数字经济发展做一点点贡献。<strong>数风流人物还看中国、看今朝、看你我。</strong></p>
+]]></content>
+  </entry>
+  <entry>
     <title>多路径来源页面导航高亮以及面包屑导航修改</title>
     <url>/blog/posts/2025032412.html</url>
     <content><![CDATA[<h2 id="问题缘由"><a href="#问题缘由" class="headerlink" title="问题缘由"></a>问题缘由</h2><p>这个问题比较普遍，原因是业务方面对产品进行多维度的划分（或者对产品进行归档、打标签、收藏等等），反应在前端方面就是同一个页面可以有不同的入口（产品目录结构划分）</p>
@@ -1607,7 +1640,7 @@
 <p><img src="https://cdn.jsdelivr.net/gh/all-smile/nav@1.0.7/static/images/wind_girl.webp"></p>
 <p>我是 <a href="https://home.i-xiao.space/"><strong>甜点cc</strong></a></p>
 <p>热爱前端，也喜欢专研各种跟本职工作关系不大的技术，技术、产品兴趣广泛且浓厚，等待着一个创业机会。主要致力于分享实用技术干货，希望可以给一小部分人一些微小帮助。</p>
-<p>我排斥“新人迷茫，老人看戏”的现象，希望能和大家一起努力破局。营造一个良好的技术氛围，为了个人、为了我国的数字化转型、互联网物联网技术、数字经济发展做一点点贡献。数风流人物还看今朝、看中国、看你我。</p>
+<p>我排斥“新人迷茫，老人看戏”的现象，希望能和大家一起努力破局。营造一个良好的技术氛围，为了个人、为了我国的数字化转型、互联网物联网技术、数字经济发展做一点点贡献。<strong>数风流人物还看中国、看今朝、看你我。</strong></p>
 ]]></content>
       <categories>
         <category>前端</category>
