@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.2.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://fastly.jsdelivr.net'>
+  <link rel="preconnect" href="https://fastly.jsdelivr.net" crossorigin>
+  <link rel='dns-prefetch' href='//unpkg.com'>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>常用的SSH，你了解多少？（长文警告） - 甜点cc</title>
+
+  
+    <meta name="description" content="本文从SSH工作原理、加密方式探究开始，引出多主机配置ssh连接的密钥选择问题，继续分析ssh_config配置，配以示例配置，干货慢慢。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="常用的SSH，你了解多少？（长文警告）">
+<meta property="og:url" content="https://all-smile.github.io/blog/posts/184663689.html">
+<meta property="og:site_name" content="甜点cc">
+<meta property="og:description" content="本文从SSH工作原理、加密方式探究开始，引出多主机配置ssh连接的密钥选择问题，继续分析ssh_config配置，配以示例配置，干货慢慢。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://pic.imgdb.cn/item/63119b6b16f2c2beb1e029b5.png">
+<meta property="og:image" content="https://pic.imgdb.cn/item/63119b8216f2c2beb1e035eb.png">
+<meta property="og:image" content="https://pic.imgdb.cn/item/63119ba916f2c2beb1e0475e.png">
+<meta property="og:image" content="https://pic.imgdb.cn/item/63119bba16f2c2beb1e054d6.png">
+<meta property="og:image" content="https://pic.imgdb.cn/item/63119bc716f2c2beb1e06187.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/all-smile/nav@1.0.7/static/images/wind_girl.webp">
+<meta property="article:published_time" content="2022-09-01T07:35:32.000Z">
+<meta property="article:modified_time" content="2022-09-05T07:11:00.623Z">
+<meta property="article:author" content="甜点cc">
+<meta property="article:tag" content="SSH">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pic.imgdb.cn/item/63119b6b16f2c2beb1e029b5.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/blog/css/main.css">
+
+  
+
+  
+
+  
+
+  
+
+
+  
+</head>
+
+<body>
+  
+
+
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/blog/about/"><div class="bg" style="opacity:0;background-image:url(https://fastly.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="https://pic.imgdb.cn/item/6315700316f2c2beb119d392.jpg" onerror="javascript:this.classList.add('error');this.src='https://fastly.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/blog/"><div class="main">甜点cc</div><div class="sub cap">看见另一种可能</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/blog/">文章</a><a class="nav-item" href="/blog/wiki/">项目</a><a class="nav-item" href="/blog/notes/">笔记</a><a class="nav-item" href="/blog/more/">更多</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-1%E3%80%81%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86"><span class="toc-text">1.1、对称加密</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-2%E3%80%81%E9%9D%9E%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86"><span class="toc-text">1.2、非对称加密</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-3%E3%80%81%E5%9F%BA%E4%BA%8E%E5%8F%A3%E4%BB%A4%E5%92%8C%E5%85%AC%E9%92%A5%E8%AE%A4%E8%AF%81"><span class="toc-text">1.3、基于口令和公钥认证</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1%E3%80%81ssh-config-%E4%BB%8B%E7%BB%8D"><span class="toc-text">3.1、ssh config 介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-1%E3%80%81%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F"><span class="toc-text">3.1.1、文件格式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-2%E3%80%81%E5%B0%9D%E9%B2%9C%E4%B8%80%E4%B8%8B"><span class="toc-text">3.1.2、尝鲜一下</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2%E3%80%81%E8%A7%A3%E9%87%8A%E7%AE%97%E6%B3%95"><span class="toc-text">3.2、解释算法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3%E3%80%81ssh-config-%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E2%9C%A8"><span class="toc-text">3.3、ssh_config 的工作原理✨</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-1%E3%80%81ssh-%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%8C%89%E4%BB%A5%E4%B8%8B%E9%A1%BA%E5%BA%8F%E4%BB%8E%E4%B8%89%E4%B8%AA%E5%9C%B0%E6%96%B9%E8%AF%BB%E5%8F%96%E9%85%8D%E7%BD%AE%EF%BC%9A"><span class="toc-text">3.3.1、ssh 客户端按以下顺序从三个地方读取配置：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-2%E3%80%81%E4%B8%BB%E6%9C%BA%E5%88%AB%E5%90%8D%E8%AE%BE%E7%BD%AE%E4%BE%8B%E5%AD%90"><span class="toc-text">3.3.2、主机别名设置例子</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-3%E3%80%81git-%E4%BB%93%E5%BA%93%E8%BF%9E%E6%8E%A5%E5%88%AB%E5%90%8D%E8%AE%BE%E7%BD%AE%E4%BE%8B%E5%AD%90"><span class="toc-text">3.3.3、git 仓库连接别名设置例子</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-4%E3%80%81%E8%BF%9E%E6%8E%A5%E9%97%AE%E9%A2%98"><span class="toc-text">3.4、连接问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-1%E3%80%81%E6%9C%AC%E5%9C%B0%E7%94%9F%E6%88%90%E5%85%AC%E7%A7%81%E9%92%A5%E5%AF%B9"><span class="toc-text">4.1、本地生成公私钥对</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-2%E3%80%81%E9%85%8D%E7%BD%AE%E8%BF%9C%E7%A8%8B%E4%B8%BB%E6%9C%BAssh"><span class="toc-text">4.2、配置远程主机ssh</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-3%E3%80%81%E8%AE%BE%E7%BD%AE-ssh-config"><span class="toc-text">4.3、设置 ssh_config</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-4%E3%80%81%E6%B5%8B%E8%AF%95%E8%BF%9E%E6%8E%A5"><span class="toc-text">4.4、测试连接</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/blog/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/blog/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/blog/categories/%E5%89%8D%E7%AB%AF/">前端</a></div><div id="post-meta">发布于&nbsp;<time datetime="2022-09-01T07:35:32.000Z">2022-09-01</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>常用的SSH，你了解多少？（长文警告）</span></h1>
+<h1 id="1、SSH工作原理"><a href="#1、SSH工作原理" class="headerlink" title="1、SSH工作原理"></a>1、SSH工作原理</h1><p>从ssh的<strong>加密方式</strong>说开去，看下文👇</p>
+<h2 id="1-1、对称加密"><a href="#1-1、对称加密" class="headerlink" title="1.1、对称加密"></a>1.1、对称加密</h2><p>客户端和服务端采用相同的密钥进行数据的加解密，很难保证密钥不丢失，或者被截获。隐藏着<strong>中间人攻击</strong>的风险</p>
+<blockquote>
+<p>如果攻击者插在用户与远程主机之间（比如在公共的wifi区域），用伪造的公钥，获取用户的登录密码。再用这个密码登录远程主机，那么SSH的安全机制就不存在了。这种风险就是著名的”中间人攻击”（<code>Man-in-the-middle attack</code>）</p>
+</blockquote>
+<p>为了解决对称加密的漏洞，就出现了非对称加密。非对称加密有两个密钥：“公钥”和“私钥”。公钥加密后的密文，只能通过对应的私钥进行解密。想从公钥推理出私钥几乎不可能，所以非对称加密的安全性比较高。</p>
+<h2 id="1-2、非对称加密"><a href="#1-2、非对称加密" class="headerlink" title="1.2、非对称加密"></a>1.2、非对称加密</h2><p><strong>ssh连接远程git仓库时的登录验证原理</strong>：本地主机向远程主机发送登录请求，远程主机收到请求后，返回给本地主机一个随机字符串A，本地主机用私钥加密字符串A得到密文B，并把密文B发送给远程主机，远程主机用公钥解密密文A得到字符串B，并判断A是否等于B，如果相等，则认证成功，反之，则反之。<br>不在要求使用密码登录，以公私钥的方式实现免密登录</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/blog/images/base/gloading.gif" data-original="https://pic.imgdb.cn/item/63119b6b16f2c2beb1e029b5.png"></p>
+<h2 id="1-3、基于口令和公钥认证"><a href="#1-3、基于口令和公钥认证" class="headerlink" title="1.3、基于口令和公钥认证"></a>1.3、基于口令和公钥认证</h2><p>只有在第一次连接的时候需要，通信双方验证身份之后就可以通过在客户端的私钥和你存放在服务器的公钥进行认证。(通过服务器上的公钥加密，客户端的私钥解密来验证)</p>
+<p><strong>第一次登录：</strong></p>
+<blockquote>
+<p>如果不是第一次登录，想看一下效果的话，可以修改一下本地的 <code>~/.ssh/known_hosts</code> 文件名（<code>~/.ssh/known_hosts</code>文件中保存的是已经认证过的公钥信息），重命名该文件之后，相当于清空了认证过的公钥信息，再次连接的时候就会重新认证😁😁</p>
+</blockquote>
+<ol>
+<li>ssh连接远程主机</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ git <span class="built_in">clone</span> git@gitcode.net:xxx.git</span><br><span class="line">Cloning into <span class="string">&#x27;xxx&#x27;</span>...</span><br><span class="line">The authenticity of host <span class="string">&#x27;gitcode.net (119.3.229.170)&#x27;</span> can<span class="string">&#x27;t be established.</span></span><br><span class="line"><span class="string">RSA key fingerprint is SHA256:pyrMa3p0o90Qsuz2+kMX3CIBl+S1cZsdRlCoaosSg00Qs.</span></span><br><span class="line"><span class="string">Are you sure you want to continue connecting (yes/no/[fingerprint])?yes</span></span><br><span class="line"><span class="string">Warning: Permanently added &#x27;</span>gitcode.net,119.3.229.170<span class="string">&#x27; (RSA) to the list of known hosts.</span></span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>查看 known_hosts 文件</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看known_hosts文件</span></span><br><span class="line">$ <span class="built_in">cat</span> known_hosts</span><br><span class="line">gitcode.net,119.3.229.170 ssh-rsa AAAAB3NzaC1yc2EAAAL......</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>因为公钥长度较长（采用<code>RSA</code>算法），很难比对，所以对其进行<code>MD5</code>计算，将它变成一个128位的指纹，如上<code>fingerprint</code>，这样比对就容易多了。</p>
+</li>
+<li><p>当远程主机的公钥被接受以后，它就会被永久保存在文件 <code>~/.ssh/known_hosts</code> 文件之中，下次再登录就会跳过<code>Warning</code>部分</p>
+</li>
+</ul>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/blog/images/base/gloading.gif" data-original="https://pic.imgdb.cn/item/63119b8216f2c2beb1e035eb.png" alt="该图来源网络，侵删"><br>上图来源网络，侵删</p>
+<blockquote>
+<p>下面以多个主机配置<code>ssh</code>连接时怎么指定使用哪个公钥为切入点，讲解<code>ssh config</code>。讲透、看爽！</p>
+</blockquote>
+<h1 id="2、多个代码仓库配置ssh连接问题"><a href="#2、多个代码仓库配置ssh连接问题" class="headerlink" title="2、多个代码仓库配置ssh连接问题"></a>2、多个代码仓库配置ssh连接问题</h1><p>SSH 是连接远程主机最常用的方式，尽管连接到单个主机的基本操作非常直接，但当你开始使用大量的远程系统时（比如：配置多个代码托管平台的ssh），这就会成为笨重和复杂的任务。</p>
+<p>幸运的是，<a target="_blank" rel="noopener" href="https://www.ssh.com/academy/ssh/openssh">OpenSSH</a> 允许您提供自定义的客户端连接选项。这些选项可以被存储到一个配置文件中，这个配置文件可以用来定义每个主机的配置。这有助于保持每个主机的连接选项更好的独立和组织，也你让你在需要连接时避免在命令行中写繁琐的选项。</p>
+<p>目前我使用的代码托管平台有<code>GitHub、Gitee、Gitlab、Gitcode</code>（瞎折腾👀），即使只使用一个平台，比如 gitlab，也会存在公司账号跟个人账号的ssh配置问题，下面讲解ssh连接远程主机时怎么指定使用哪个公钥</p>
+<blockquote>
+<p>下面展示都在Windows 系统下</p>
+</blockquote>
+<h1 id="3、ssh-config-自定义主机配置"><a href="#3、ssh-config-自定义主机配置" class="headerlink" title="3、ssh config 自定义主机配置"></a>3、ssh config 自定义主机配置</h1><h2 id="3-1、ssh-config-介绍"><a href="#3-1、ssh-config-介绍" class="headerlink" title="3.1、ssh config 介绍"></a>3.1、ssh config 介绍</h2><p>解决多个ssh密钥使用问题的<strong>最佳方案</strong>就是通过维护一个本地配置 <code>config</code>，指定主机使用哪个密钥。</p>
+<blockquote>
+<p>其他方案：（需要连接的主机多了同样很难管理，不建议使用，了解即可）</p>
+<ol>
+<li><p>设置环境变量<code>GIT_SSH_COMMAND</code>解决</p>
+</li>
+<li><p>指定命令行参数：<code>ssh -i ~/.ssh/xxx.pub -p 22  www.example.com</code></p>
+</li>
+</ol>
+</blockquote>
+<p>用户级设置的路径: <code>~/.ssh/config</code></p>
+<h3 id="3-1-1、文件格式"><a href="#3-1-1、文件格式" class="headerlink" title="3.1.1、文件格式"></a>3.1.1、文件格式</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">Host firsthost</span><br><span class="line">    SSH_OPTIONS_1 custom_value</span><br><span class="line">    SSH_OPTIONS_2 custom_value</span><br><span class="line">    SSH_OPTIONS_3 custom_value</span><br><span class="line"></span><br><span class="line">Host secondhost</span><br><span class="line">    ANOTHER_OPTION custom_value</span><br><span class="line"></span><br><span class="line">Host *host</span><br><span class="line">    ANOTHER_OPTION custom_value</span><br><span class="line"></span><br><span class="line"><span class="comment"># 公用配置在最下面</span></span><br><span class="line">Host *</span><br><span class="line">    CHANGE_DEFAULT custom_value</span><br></pre></td></tr></table></figure>
+<p>解释：Host：ssh连接主机的别称 alias</p>
+<h3 id="3-1-2、尝鲜一下"><a href="#3-1-2、尝鲜一下" class="headerlink" title="3.1.2、尝鲜一下"></a>3.1.2、尝鲜一下</h3><p>本地系统的每个用户都可以维护一个客户端的 SSH 配置文件，这个配置文件可以包含你在命令行中使用 ssh 时参数，也可以存储公共连接选项并在连接时自动处理。你可以在命令上中使用 ssh 来指定 flag ，以覆盖配置文件中的选项。<br>看一个例子：</p>
+<ul>
+<li>ssh命令行的方式：</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh -i ~/.ssh/xxx -p 22 -l admin \ www.example.com</span><br></pre></td></tr></table></figure>
+<p>上面的命令可以转换成 <code>config</code> 的形式，如下：</p>
+<ul>
+<li><code>ssh/config</code> 定义主机连接参数配置</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Host myserver1</span><br><span class="line">	Hostname www.example.com</span><br><span class="line">	<span class="comment"># User admin</span></span><br><span class="line">	Port 22</span><br><span class="line">	IdentityFile ~/.ssh/xxx</span><br><span class="line"></span><br><span class="line"><span class="comment"># 公共配置， 必须在文件最下面</span></span><br><span class="line">Host *</span><br><span class="line">  User admin</span><br></pre></td></tr></table></figure>
+
+<h2 id="3-2、解释算法"><a href="#3-2、解释算法" class="headerlink" title="3.2、解释算法"></a>3.2、解释算法</h2><p>它从文件顶部向下执行此操作，所以顺序非常重要，了解这个之后，方便我们写出更好的主机定义配置选项、方便运维管理。</p>
+<p>当匹配到第一个主机定义时，并不会终止，而是继续往下查找，检查是否有其他匹配的 Host 定义。如果有另一个 Host 定义匹配，SSH 将该 Host 定义下的配置选项跟前面匹配到的主机定义配置选项合并（<strong>随着继续往下读取配置，最终配置选项是叠加的</strong>）</p>
+<h2 id="3-3、ssh-config-的工作原理✨"><a href="#3-3、ssh-config-的工作原理✨" class="headerlink" title="3.3、ssh_config 的工作原理✨"></a>3.3、ssh_config 的工作原理✨</h2><h3 id="3-3-1、ssh-客户端按以下顺序从三个地方读取配置："><a href="#3-3-1、ssh-客户端按以下顺序从三个地方读取配置：" class="headerlink" title="3.3.1、ssh 客户端按以下顺序从三个地方读取配置："></a>3.3.1、ssh 客户端按以下顺序从三个地方读取配置：</h3><ol>
+<li><p>系统范围内 <code>/etc/ssh/ssh_config</code>（适用与主机下的所有用户，系统级 System）</p>
+</li>
+<li><p>用户特定的 <code>~/.ssh/config</code> （用户级）</p>
+</li>
+<li><p>ssh直接提供给的命令行标志 （命令参数可以重写已有的固定配置）</p>
+</li>
+</ol>
+<p>我通常使用的用户级的配置，下面是我个人的配置，仅供参考：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># gitcode - csdn</span></span><br><span class="line">Host gitcode.net</span><br><span class="line">  HostName gitcode.net</span><br><span class="line">  Preferredauthentications publickey</span><br><span class="line">  IdentityFile ~/.ssh/gitcode</span><br><span class="line"></span><br><span class="line"><span class="comment"># gitlab</span></span><br><span class="line">Host gitlab.com</span><br><span class="line">  HostName gitlab.com</span><br><span class="line">  IdentityFile ~/.ssh/gitlab-rsa</span><br><span class="line"></span><br><span class="line"><span class="comment"># github</span></span><br><span class="line">Host github.com</span><br><span class="line">  HostName github.com</span><br><span class="line">  IdentityFile ~/.ssh/id_rsa</span><br><span class="line"></span><br><span class="line"><span class="comment"># gitee</span></span><br><span class="line">Host gitee.com</span><br><span class="line">  HostName gitee.com</span><br><span class="line">  IdentityFile ~/.ssh/id_rsa</span><br><span class="line"></span><br><span class="line"><span class="comment"># 共享配置，文件最下面</span></span><br><span class="line">Host *</span><br><span class="line">  <span class="comment"># 认证方式首选 publickey(公钥)， 可选： publickey,gssapi-keyex,gssapi-with-mic,password</span></span><br><span class="line">  PreferredAuthentications publickey</span><br><span class="line">  User git <span class="comment"># ssh [Host] === ssh [User]@[HostName]</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>解释：</strong></p>
+<ul>
+<li><p>Host：ssh的别称</p>
+<p>比如 Host 设置成 xiao ，使用的时候 ssh xiao（注意设置User）</p>
+</li>
+<li><p>HostName： 服务器的地址</p>
+</li>
+<li><p>PreferredAuthentications : 认证方式</p>
+<p>可选： <code>publickey,gssapi-keyex,gssapi-with-mic,password</code></p>
+</li>
+<li><p>IdentityFile: 指定连接HostName的密钥文件的路径</p>
+</li>
+</ul>
+<h3 id="3-3-2、主机别名设置例子"><a href="#3-3-2、主机别名设置例子" class="headerlink" title="3.3.2、主机别名设置例子"></a>3.3.2、主机别名设置例子</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Host dev1</span><br><span class="line">    HostName dev1.example.com</span><br><span class="line">    User jeery</span><br></pre></td></tr></table></figure>
+
+<p>现在要连接到 <code>jeery@dev1.example.com</code>，就可以通过在命令行中输入如下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ssh dev1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 相当于</span></span><br><span class="line">ssh jeery@dev1.example.com</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-3、git-仓库连接别名设置例子"><a href="#3-3-3、git-仓库连接别名设置例子" class="headerlink" title="3.3.3、git 仓库连接别名设置例子"></a>3.3.3、git 仓库连接别名设置例子</h3><p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/blog/images/base/gloading.gif" data-original="https://pic.imgdb.cn/item/63119ba916f2c2beb1e0475e.png"></p>
+<h2 id="3-4、连接问题"><a href="#3-4、连接问题" class="headerlink" title="3.4、连接问题"></a>3.4、连接问题</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">PS C:\Users\xiao\.ssh&gt;vim .\config</span><br><span class="line">PS C:\Users\xiao\.ssh&gt;ssh -T git@gitcode.net</span><br><span class="line">Bad owner or permissions on C:\\Users\\xiao/.ssh/config</span><br><span class="line">PS C:\Users\xiao\.ssh&gt;</span><br></pre></td></tr></table></figure>
+
+<p><strong>解决：</strong></p>
+<p>修改 config 文件 权限</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> ~/.ssh/</span><br><span class="line"><span class="built_in">chmod</span> 600 config</span><br></pre></td></tr></table></figure>
+
+<h1 id="4、git仓库设置ssh连接"><a href="#4、git仓库设置ssh连接" class="headerlink" title="4、git仓库设置ssh连接"></a>4、git仓库设置ssh连接</h1><p>下面演示我的设置步骤，仅供参考</p>
+<h2 id="4-1、本地生成公私钥对"><a href="#4-1、本地生成公私钥对" class="headerlink" title="4.1、本地生成公私钥对"></a>4.1、本地生成公私钥对</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -o -t rsa -C <span class="string">&quot;yourmail&quot;</span> -b 4096</span><br></pre></td></tr></table></figure>
+
+<p>🔊 记得设置<code>key</code>的名字哟，默认是 <code>id_rsa</code>（如果不设置<code>key</code>，新生成的 <code>id_rsa</code> 文件会覆盖原有的<code>id_rsa</code>文件，之前添加过的就不能用啦！），参考下图👇</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/blog/images/base/gloading.gif" data-original="https://pic.imgdb.cn/item/63119bba16f2c2beb1e054d6.png"></p>
+<h2 id="4-2、配置远程主机ssh"><a href="#4-2、配置远程主机ssh" class="headerlink" title="4.2、配置远程主机ssh"></a>4.2、配置远程主机ssh</h2><p>登录要连接的远程主机，这里演示 <a target="_blank" rel="noopener" href="https://gitcode.net/dashboard/projects/home">gitcode</a> 平台</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/blog/images/base/gloading.gif" data-original="https://pic.imgdb.cn/item/63119bc716f2c2beb1e06187.png"></p>
+<h2 id="4-3、设置-ssh-config"><a href="#4-3、设置-ssh-config" class="headerlink" title="4.3、设置 ssh_config"></a>4.3、设置 ssh_config</h2><p>这里我统一维护在 <code>~/.ssh/config</code>里面维护，增加<code>gitcode</code>主机定义配置， 如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># gitcode - csdn</span></span><br><span class="line">Host gitcode.net</span><br><span class="line">  HostName gitcode.net</span><br><span class="line">  IdentityFile ~/.ssh/gitcode</span><br><span class="line"></span><br><span class="line"><span class="comment"># 共用配置，文件最下面</span></span><br><span class="line">Host *</span><br><span class="line">  <span class="comment"># 认证方式首选 publickey(公钥), 可选: publickey,gssapi-keyex,gssapi-with-mic,password</span></span><br><span class="line">  PreferredAuthentications publickey</span><br><span class="line">  User git <span class="comment"># ssh [Host] === ssh [User]@[HostName]</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="4-4、测试连接"><a href="#4-4、测试连接" class="headerlink" title="4.4、测试连接"></a>4.4、测试连接</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">xiao@LAPTOP-L6TI0438 MINGW64 ~/.ssh</span><br><span class="line">ssh -T gitagitcode.net</span><br><span class="line">Welcome to GitLab,@heyYouU!</span><br><span class="line">xiao@LAPTOP-L6TI0438 MINGW64 ~/.ssh</span><br></pre></td></tr></table></figure>
+
+<h1 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h1><p>相信看完上面的讲解，会对ssh理解的更清除一点。So，快来更换 ssh 试试吧</p>
+<p><strong>连接远程仓库可以选择https，也可以选择ssh</strong></p>
+<p>区别：</p>
+<ol>
+<li><p>https 连接有文件传输大小限制，ssh没有</p>
+</li>
+<li><p>ssh传输速度比https协议快</p>
+</li>
+<li><p>https 连接提交代码的时候需要输入账户密码登录，ssh则是以公私钥加解密随机数的方式免密登录</p>
+</li>
+</ol>
+<p>连接仓库的方式可以转换，如： https 转成 ssh，比较简单，不作介绍。</p>
+<p>SSH东西超多的，光 SSH 配置选项就几十个，本文抛砖引玉，大家可以继续往下探索🎉🎉</p>
+<p>参考文档：</p>
+<ul>
+<li><p><a target="_blank" rel="noopener" href="https://www.digitalocean.com/community/tutorials/how-to-configure-custom-connection-options-for-your-ssh-client">https://www.digitalocean.com/community/tutorials/how-to-configure-custom-connection-options-for-your-ssh-client</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="http://www.bjpowernode.com/hot/2664.html">http://www.bjpowernode.com/hot/2664.html</a></p>
+</li>
+</ul>
+<hr>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/blog/images/base/gloading.gif" data-original="https://cdn.jsdelivr.net/gh/all-smile/nav@1.0.7/static/images/wind_girl.webp"></p>
+<p>我是 <a target="_blank" rel="noopener" href="https://home.i-xiao.space/"><strong>甜点cc</strong></a></p>
+<p>热爱前端，也喜欢专研各种跟本职工作关系不大的技术，技术、产品兴趣广泛且浓厚，等待着一个创业机会。主要致力于分享实用技术干货，希望可以给一小部分人一些微小帮助。</p>
+<p>我排斥“新人迷茫，老人看戏”的现象，希望能和大家一起努力破局。营造一个良好的技术氛围，为了个人、为了我国的数字化转型、互联网物联网技术、数字经济发展做一点点贡献。数风流人物还看今朝、看中国、看你我。</p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>许可协议</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/blog/posts/252268106.html">React Native环境配置、初始化项目、打包安装到手机，以及开发小知识<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/blog/posts/2156089668.html">记一个 '奇葩' 需求的实现<span class="note">较新</span></a></section></div>
+
+
+<div class="related-wrap reveal" id="related-posts">
+    <section class='header'>
+      <div class='title cap theme'>您可能感兴趣的文章</div>
+    </section>
+    <section class='body'>
+    <div class="related-posts"><a class="item" href="/blog/posts/1327063303.html" title="D8调试工具——jsvu的使用细则"><div class="img"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/blog/images/base/gloading.gif" data-original="https://source.unsplash.com/1280x640/?V8" /></div><span class="title">D8调试工具——jsvu的使用细则</span><span class="excerpt">D8 是一个非常有用的调试工具，可以使用 d8 来查看 V8 在编译执行 JavaScript 过程中的各种中间数据，本文通过jsvu安装D8。</span></a></div></section></div>
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body beaudar'>
+      
+
+<svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg>
+
+<div id="beaudar" repo="all-smile/blog-comments" issue-term="pathname" theme="preferred-color-scheme" input-position="top" comment-order="desc" loading="false" branch="main"></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>本站由 <a href="https://all-smile.github.io/blog/blog/">@甜点cc</a> 创建，使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.8.0" title="v1.8.0">Stellar</a> 作为主题。</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.8.0';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://fastly.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/blog/js/plugins/sites.js',
+    friendsjs: '/blog/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://fastly.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://fastly.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://fastly.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://fastly.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.fancybox = Object.assign({"enable":true,"js":"https://fastly.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.js","css":"https://fastly.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.css","selector":".swiper-slide img"});
+  }
+  if ('false' == 'true') {
+    stellar.plugins.heti = Object.assign({"enable":false,"css":"https://unpkg.com/heti/umd/heti.min.css","js":"https://unpkg.com/heti/umd/heti-addon.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/blog/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function loadBeaudar() {
+    const els = document.querySelectorAll("#comments #beaudar");
+    if (els.length === 0) return;
+    els.forEach((el, i) => {
+      try {
+        el.innerHTML = '';
+      } catch (error) {
+        console.log(error);
+      }
+      var script = document.createElement('script');
+      script.src = 'https://beaudar.lipk.org/client.js';
+      script.async = true;
+      for (let key of Object.keys(el.attributes)) {
+        let attr = el.attributes[key];
+        if (['class', 'id'].includes(attr.name) === false) {
+          script.setAttribute(attr.name, attr.value);
+        }
+      }
+      el.appendChild(script);
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+      loadBeaudar();
+  });
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(e){e.imageLazyLoadSetting.processImages=t;var n=e.imageLazyLoadSetting.isSPA,i=e.imageLazyLoadSetting.preloadRatio||1,r=o();function o(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){n&&(r=o());for(var t,a=0;a<r.length;a++)0<=(t=(t=r[a]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(e.innerHeight*i||document.documentElement.clientHeight*i)&&function(){var t,e,n,i,o=r[a];e=function(){r=r.filter(function(t){return o!==t})},(t=o).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,i=t.getAttribute("data-original"),n.onload=function(){t.src=i,t.removeAttribute("data-original"),e&&e()},t.src!==i&&(n.src=i))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),e.addEventListener("resize",a),e.addEventListener("orientationchange",a)}(this);</script></body>
+</html>

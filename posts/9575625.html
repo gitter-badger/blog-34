@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 6.2.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://fastly.jsdelivr.net'>
+  <link rel="preconnect" href="https://fastly.jsdelivr.net" crossorigin>
+  <link rel='dns-prefetch' href='//unpkg.com'>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>认识Chrome扩展插件 - 甜点cc</title>
+
+  
+    <meta name="description" content="本文从插件的基本概念、组成、运行机制、特性功能以及插件的使用等方面介绍chrome 扩展插件，旨在让读者有一个清晰的认识，激发探索、开发插件的热情">
+<meta property="og:type" content="article">
+<meta property="og:title" content="认识Chrome扩展插件">
+<meta property="og:url" content="https://all-smile.github.io/blog/posts/9575625.html">
+<meta property="og:site_name" content="甜点cc">
+<meta property="og:description" content="本文从插件的基本概念、组成、运行机制、特性功能以及插件的使用等方面介绍chrome 扩展插件，旨在让读者有一个清晰的认识，激发探索、开发插件的热情">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://files.mdnice.com/user/34064/ca2c331a-28cf-4cb9-bfcb-10d11f6fff6a.png">
+<meta property="og:image" content="https://files.mdnice.com/user/34064/ec58ffac-c63b-46a1-b690-42518f1c2fa1.png">
+<meta property="og:image" content="https://files.mdnice.com/user/34064/6339f49c-6dae-4f62-b258-92d082173444.png">
+<meta property="og:image" content="https://files.mdnice.com/user/34064/14200a5e-9f68-4d3b-acb5-ab07a13fbe30.png">
+<meta property="og:image" content="https://files.mdnice.com/user/34064/4bc20695-7737-4bc3-8b56-791933620bf6.png">
+<meta property="og:image" content="https://files.mdnice.com/user/34064/7ddafef3-f22d-4269-b637-e253a38b3c2d.png">
+<meta property="article:published_time" content="2022-08-26T07:54:12.000Z">
+<meta property="article:modified_time" content="2022-09-05T07:11:00.623Z">
+<meta property="article:author" content="甜点cc">
+<meta property="article:tag" content="前端">
+<meta property="article:tag" content="Chrome插件">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://files.mdnice.com/user/34064/ca2c331a-28cf-4cb9-bfcb-10d11f6fff6a.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/blog/css/main.css">
+
+  
+
+  
+
+  
+
+  
+
+
+  
+</head>
+
+<body>
+  
+
+
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/blog/about/"><div class="bg" style="opacity:0;background-image:url(https://fastly.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="https://pic.imgdb.cn/item/6315700316f2c2beb119d392.jpg" onerror="javascript:this.classList.add('error');this.src='https://fastly.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/blog/"><div class="main">甜点cc</div><div class="sub cap">看见另一种可能</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/blog/">文章</a><a class="nav-item" href="/blog/wiki/">项目</a><a class="nav-item" href="/blog/notes/">笔记</a><a class="nav-item" href="/blog/more/">更多</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1%E3%80%81%E5%89%8D%E8%A8%80"><span class="toc-text">1、前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2%E3%80%81Chrome-extensions-%E5%92%8C-Chrome-Plugin%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-text">2、Chrome extensions 和 Chrome Plugin的区别</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3%E3%80%81%E6%89%A9%E5%B1%95%E5%A6%82%E4%BD%95%E5%B7%A5%E4%BD%9C"><span class="toc-text">3、扩展如何工作</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4%E3%80%81Chrome%E6%89%A9%E5%B1%95%E6%96%87%E4%BB%B6"><span class="toc-text">4、Chrome扩展文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5%E3%80%81%E6%89%A9%E5%B1%95%E6%8F%92%E4%BB%B6%E4%BD%BF%E7%94%A8"><span class="toc-text">5、扩展插件使用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6%E3%80%81popup%E5%BC%B9%E5%87%BA%E7%AA%97%E5%8F%A3"><span class="toc-text">6、popup弹出窗口</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7%E3%80%81Background-Pages%E5%90%8E%E5%8F%B0%E9%A1%B5%E9%9D%A2"><span class="toc-text">7、Background Pages后台页面</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8%E3%80%81Chrome%E6%89%A9%E5%B1%95%E6%8F%92%E4%BB%B6%E8%BF%90%E8%A1%8C%E7%9A%84%E6%A0%B8%E5%BF%83%E6%9C%BA%E5%88%B6"><span class="toc-text">8、Chrome扩展插件运行的核心机制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%80%E5%90%8E"><span class="toc-text">最后</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/blog/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/blog/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/blog/categories/%E5%89%8D%E7%AB%AF/">前端</a></div><div id="post-meta">发布于&nbsp;<time datetime="2022-08-26T07:54:12.000Z">2022-08-26</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>认识Chrome扩展插件</span></h1>
+<hr>
+<h2 id="1、前言"><a href="#1、前言" class="headerlink" title="1、前言"></a>1、前言</h2><p>现如今的时代，绝大多数人都要跟浏览器打交道的，说到浏览器那肯定是<code>Chrome</code>浏览器一家独大，具体数据请看👇</p>
+<p>知名流量监测机构 <a target="_blank" rel="noopener" href="https://statcounter.com/">Statcounter</a> 公布了 7 月份全球桌面浏览器市场份额，主要数据如下：</p>
+<table>
+<thead>
+<tr>
+<th>浏览器</th>
+<th>市场份额</th>
+<th>月涨跌份额</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Chrome</td>
+<td>66.19%</td>
+<td>-0.74%</td>
+</tr>
+<tr>
+<td>Edge</td>
+<td>10.84%</td>
+<td>+0.2%</td>
+</tr>
+<tr>
+<td>Safari</td>
+<td>8.94%</td>
+<td>+0.01%</td>
+</tr>
+<tr>
+<td>Firefox</td>
+<td>8.08%</td>
+<td>+0.28%</td>
+</tr>
+<tr>
+<td>Opera</td>
+<td>3.06%</td>
+<td>+0.08%</td>
+</tr>
+<tr>
+<td>IE</td>
+<td>0.75%</td>
+<td></td>
+</tr>
+</tbody></table>
+<p><strong>浏览器扩展插件的用途</strong></p>
+<ul>
+<li><p>生产力工具（和浏览器进行交互：标签、书签、下载、代理、cookie等）</p>
+</li>
+<li><p>网页内容丰富（改变浏览器外观、桌面通知、右键菜单、定制新标签页）</p>
+</li>
+<li><p>信息聚合（更像是一个<em>快应用</em>，类似小程序）</p>
+</li>
+<li><p>乐趣和游戏（小恐龙（<code>chrome://dino/</code>）游戏，想必都玩过）</p>
+</li>
+</ul>
+<p>总之扩展程序让浏览器的功能更加强大，更加贴合用户使用。不管是不是软件开发人员，或多或少都会使用到浏览器扩展插件，常见的比如：书签、网页翻译、广告屏蔽……</p>
+<p>学习Chrome扩展插件势在必行🏃‍♂️🐱‍🏍</p>
+<ul>
+<li><p>Chrome extensions <a target="_blank" rel="noopener" href="https://developer.chrome.com/docs/extensions/">文档</a></p>
+</li>
+<li><p>插件的架构可以参考<a target="_blank" rel="noopener" href="https://developer.chrome.com/docs/extensions/mv3/architecture-overview/">这里</a></p>
+</li>
+<li><p>Chrome扩展程序应用商店<a target="_blank" rel="noopener" href="https://chrome.google.com/webstore/category/extensions">入口</a></p>
+</li>
+<li><p>管理使用chrome扩展。访问 url: <code>chrome://extensions</code>，打开开发者模式</p>
+</li>
+</ul>
+<p>扩展程序是基于 Web 技术（如 HTML、CSS 和 JavaScript）构建的软件程序，使用户能够自定义 Chrome 浏览体验。（前端开发人员技能范围之内😁😁）</p>
+<p>本文从应用着手，通过讲解扩展插件的特性来启发读者对其进一步探索。</p>
+<h2 id="2、Chrome-extensions-和-Chrome-Plugin的区别"><a href="#2、Chrome-extensions-和-Chrome-Plugin的区别" class="headerlink" title="2、Chrome extensions 和 Chrome Plugin的区别"></a>2、Chrome extensions 和 Chrome Plugin的区别</h2><ul>
+<li><p>Chrome Extension（Chrome扩展插件）仅仅是用来增强浏览器网页的功能，它是利用浏览器提供的已有功能和和各种API，进行功能组合，从而改善浏览器体验，停留在<strong>浏览器层面</strong>；</p>
+</li>
+<li><p>Chrome Plugin（Chrome插件）不仅能增强网页的功能，同时能够扩展浏览器本身的功能；当浏览器提供的功能已经无法满足你的需求，就需要你通过C&#x2F;C++这样的编译语言来扩展浏览器的功能，例如我们常用的Flash 插件，Chrome Plugin工作在<strong>内核层面</strong>。</p>
+</li>
+</ul>
+<h2 id="3、扩展如何工作"><a href="#3、扩展如何工作" class="headerlink" title="3、扩展如何工作"></a>3、扩展如何工作</h2><ul>
+<li><p>扩展是基于 HTML、JavaScript 和 CSS 等 Web 技术构建的。它们在单独的沙盒执行环境中运行，并与 Chrome 浏览器交互。</p>
+</li>
+<li><p>扩展允许您通过使用 API 修改浏览器行为和访问 Web 内容来“扩展”浏览器。扩展通过最终用户 UI 和开发人员 API 进行操作：</p>
+</li>
+<li><p>扩展用户界面 这为用户提供了一种一致的方式来管理他们的扩展。</p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://developer.chrome.com/docs/extensions/reference/">扩展 API</a>允许扩展代码访问浏览器本身的功能：激活选项卡、修改网络请求等。</p>
+</li>
+</ul>
+<p>要创建扩展，您需要组合一些资源清单: <code>manifest.json</code>、 <code>JavaScript</code>、 <code>HTML</code> 和 <code>CSS</code> 文件、图片等。</p>
+<h2 id="4、Chrome扩展文件"><a href="#4、Chrome扩展文件" class="headerlink" title="4、Chrome扩展文件"></a>4、Chrome扩展文件</h2><p>Chrome扩展文件以.crx为后缀名，.crx实际上是一个压缩文件，使用解压文件打开这个文件就可以看到其中的文件目录</p>
+<p>下图是 <code>Axure</code> 扩展插件原文件：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/blog/images/base/gloading.gif" data-original="https://files.mdnice.com/user/34064/ca2c331a-28cf-4cb9-bfcb-10d11f6fff6a.png"></p>
+<p>因此可以认为，我们实际上就是写一个Web应用，然后将按照Chrome的规定将一个<strong>快捷方式</strong>放在Chrome工具栏上。如下图：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/blog/images/base/gloading.gif" data-original="https://files.mdnice.com/user/34064/ec58ffac-c63b-46a1-b690-42518f1c2fa1.png"></p>
+<p>上图中左边地址栏内部的按钮是page action（Chrome插件，直接内置在Chrome里的），右边地址栏外部的是 browser action（Chrome 扩展插件）</p>
+<h2 id="5、扩展插件使用"><a href="#5、扩展插件使用" class="headerlink" title="5、扩展插件使用"></a>5、扩展插件使用</h2><p>对于开发和测试，您可以使用扩展开发者模式将这些“解压”加载到 Chrome 中，或者直接拖动<code>crx</code>文件到管理扩展插件页面。如果扩展感到满意，也可以打包并分享给小伙伴使用。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/blog/images/base/gloading.gif" data-original="https://files.mdnice.com/user/34064/6339f49c-6dae-4f62-b258-92d082173444.png"></p>
+<h2 id="6、popup弹出窗口"><a href="#6、popup弹出窗口" class="headerlink" title="6、popup弹出窗口"></a>6、popup弹出窗口</h2><ul>
+<li><p><code>popup.html</code>可以在里面放置任何<code>html</code>元素，它的宽度是自适应的。当然，这个弹出窗口不会被Chrome拦截</p>
+</li>
+<li><p>popup 无法通过程序打开，只能由用户点击打开。点击 popup 之外的区域会导致 popup 收起。</p>
+</li>
+</ul>
+<p>下图是 <code>FeHelper</code> 扩展插件的弹出窗👇</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/blog/images/base/gloading.gif" data-original="https://files.mdnice.com/user/34064/14200a5e-9f68-4d3b-acb5-ab07a13fbe30.png"></p>
+<h2 id="7、Background-Pages后台页面"><a href="#7、Background-Pages后台页面" class="headerlink" title="7、Background Pages后台页面"></a>7、Background Pages后台页面</h2><p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/blog/images/base/gloading.gif" data-original="https://files.mdnice.com/user/34064/4bc20695-7737-4bc3-8b56-791933620bf6.png"></p>
+<h2 id="8、Chrome扩展插件运行的核心机制"><a href="#8、Chrome扩展插件运行的核心机制" class="headerlink" title="8、Chrome扩展插件运行的核心机制"></a>8、Chrome扩展插件运行的核心机制</h2><p>Chrome扩展插件中比较核心的几个概念：<code>Extension Page</code>、<code>background.js</code>、<code>content_script.js</code></p>
+<p>下图展示他们之间的关系，以及如何通信</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/blog/images/base/gloading.gif" data-original="https://files.mdnice.com/user/34064/7ddafef3-f22d-4269-b637-e253a38b3c2d.png"><br>（图片来源网络，侵删）</p>
+<p>运行时的三个进程：</p>
+<ul>
+<li><p>扩展进程（Extension Process）</p>
+</li>
+<li><p>页面渲染进程（Page Render Process）</p>
+</li>
+<li><p>浏览器进程（Browser Process）</p>
+</li>
+</ul>
+<ol>
+<li><strong>扩展进程</strong>中运行<code>Extension Page</code>，主要包括<code>backgrount.html</code>和<code>popup.html</code>,</li>
+</ol>
+<ul>
+<li><p><code> backgrount.html</code>中没有任何内容，是通过<code>background.js</code>创建生成，当浏览器打开时，会自动加载插件的background.js文件，它独立于网页并且一直运行在后台，它主要通过调用浏览器提供的API和浏览器进行交互</p>
+</li>
+<li><p><code>popup.html</code>有内容的，跟我们普通的web页面一样，由<code>html</code>、<code>css</code>、<code>Javascript</code>组成，它是按需加载的，需要用户去点击地址栏的按钮去触发，才能弹出页面。</p>
+</li>
+</ul>
+<ol start="2">
+<li><p><strong>渲染进程</strong>主要运行<code>Web Page</code>,当打开页面时，会将<code>content_script.js</code>加载并注入到该网页的环境中，它和网页中引入的<code>Javascript</code>一样，可以操作该网页的<code>DOM Tree</code>，<em>改变页面的展示效果</em></p>
+</li>
+<li><p><strong>浏览器进程</strong>在这里更多起到桥梁作用，作为中转可以实现<code>Extension Page</code>和<code>content_script.js</code>之间的消息通信。</p>
+</li>
+</ol>
+<h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><p>本文介绍的是 chrome 扩展基础知识，相信看完以上之后，你会对 Chrome 扩展插件有了一个比较清晰的认识。相信chrome扩展会大有作为，会不会迫不急待的要体验一下呢🤔，我根据Chrome插件开发官网示例写的一个小扩展插件，点击<a target="_blank" rel="noopener" href="https://github.com/all-smile/myFirstExtension">这里</a>查看项目。</p>
+<hr>
+<p>🌹 持续更文，关注我，你会发现一个踏实努力的宝藏前端😊，让我们一起学习，共同成长吧。</p>
+<p>🎉 喜欢的小伙伴记得点赞关注收藏哟，回看不迷路 😉</p>
+<p>🎁 欢迎大家评论交流, 蟹蟹😊</p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>许可协议</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/blog/posts/2025032412.html">多路径来源页面导航高亮以及面包屑导航修改<span class="note">较早</span></a><div class="line"></div><a id="prev" href="/blog/posts/2358217424.html">认识HTTP缓存<span class="note">较新</span></a></section></div>
+
+
+<div class="related-wrap reveal" id="related-posts">
+    <section class='header'>
+      <div class='title cap theme'>您可能感兴趣的文章</div>
+    </section>
+    <section class='body'>
+    <div class="related-posts"><a class="item" href="/blog/posts/2159164587.html" title="博客园美化"><div class="img"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/blog/images/base/gloading.gif" data-original="https://source.unsplash.com/1280x640/?前端" /></div><span class="title">博客园美化</span><span class="excerpt">博客园允许用户设置多样化的主题。通过选择皮肤，植入跟皮肤配套的CSS、JS，即可实现个性化的界面风格和交互行为。</span></a><a class="item" href="/blog/posts/2025032412.html" title="多路径来源页面导航高亮以及面包屑导航修改"><div class="img"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/blog/images/base/gloading.gif" data-original="https://source.unsplash.com/1280x640/?前端" /></div><span class="title">多路径来源页面导航高亮以及面包屑导航修改</span><span class="excerpt">业务方面对产品进行多维度的划分（或者对产品进行归档、打标签、收藏等，带来的前端导航高亮以及面包屑问题解决</span></a><a class="item" href="/blog/posts/3277520678.html" title="多路由复用页面组件问题"><div class="img"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/blog/images/base/gloading.gif" data-original="https://source.unsplash.com/1280x640/?前端" /></div><span class="title">多路由复用页面组件问题</span><span class="excerpt">本文围绕 Vue Router 中路由组件复用问题展开，在应用层面探讨动态路由和复用页面组件的相关钩子函数执行情况。</span></a><a class="item" href="/blog/posts/1327063303.html" title="D8调试工具——jsvu的使用细则"><div class="img"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/blog/images/base/gloading.gif" data-original="https://source.unsplash.com/1280x640/?V8" /></div><span class="title">D8调试工具——jsvu的使用细则</span><span class="excerpt">D8 是一个非常有用的调试工具，可以使用 d8 来查看 V8 在编译执行 JavaScript 过程中的各种中间数据，本文通过jsvu安装D8。</span></a></div></section></div>
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body beaudar'>
+      
+
+<svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg>
+
+<div id="beaudar" repo="all-smile/blog-comments" issue-term="pathname" theme="preferred-color-scheme" input-position="top" comment-order="desc" loading="false" branch="main"></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>本站由 <a href="https://all-smile.github.io/blog/blog/">@甜点cc</a> 创建，使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.8.0" title="v1.8.0">Stellar</a> 作为主题。</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.8.0';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://fastly.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/blog/js/plugins/sites.js',
+    friendsjs: '/blog/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://fastly.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://fastly.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://fastly.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://fastly.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.fancybox = Object.assign({"enable":true,"js":"https://fastly.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.js","css":"https://fastly.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.css","selector":".swiper-slide img"});
+  }
+  if ('false' == 'true') {
+    stellar.plugins.heti = Object.assign({"enable":false,"css":"https://unpkg.com/heti/umd/heti.min.css","js":"https://unpkg.com/heti/umd/heti-addon.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/blog/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function loadBeaudar() {
+    const els = document.querySelectorAll("#comments #beaudar");
+    if (els.length === 0) return;
+    els.forEach((el, i) => {
+      try {
+        el.innerHTML = '';
+      } catch (error) {
+        console.log(error);
+      }
+      var script = document.createElement('script');
+      script.src = 'https://beaudar.lipk.org/client.js';
+      script.async = true;
+      for (let key of Object.keys(el.attributes)) {
+        let attr = el.attributes[key];
+        if (['class', 'id'].includes(attr.name) === false) {
+          script.setAttribute(attr.name, attr.value);
+        }
+      }
+      el.appendChild(script);
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+      loadBeaudar();
+  });
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(e){e.imageLazyLoadSetting.processImages=t;var n=e.imageLazyLoadSetting.isSPA,i=e.imageLazyLoadSetting.preloadRatio||1,r=o();function o(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){n&&(r=o());for(var t,a=0;a<r.length;a++)0<=(t=(t=r[a]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(e.innerHeight*i||document.documentElement.clientHeight*i)&&function(){var t,e,n,i,o=r[a];e=function(){r=r.filter(function(t){return o!==t})},(t=o).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,i=t.getAttribute("data-original"),n.onload=function(){t.src=i,t.removeAttribute("data-original"),e&&e()},t.src!==i&&(n.src=i))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),e.addEventListener("resize",a),e.addEventListener("orientationchange",a)}(this);</script></body>
+</html>
